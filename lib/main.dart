@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:part3/pages/ClothingHomePage.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+void main() async {
+  // Ensure that Firebase is initialized
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
   runApp(MyApp());
 }
 

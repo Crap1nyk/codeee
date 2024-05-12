@@ -4,18 +4,42 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 void main() {
   runApp(ClothingApp());
 }
 
 List<Map<String, dynamic>> products = [
-  {'name': 'Product 1', 'price': 20.0, 'image': 'jacket.jpg', 'category': 'Jackets'},
-  {'name': 'Product 2', 'price': 30.0, 'image': 'jacketw.jpeg', 'category': 'Jackets'},
-  {'name': 'Product 3', 'price': 25.0, 'image': 'jeans.jpeg', 'category': 'Pants'},
-  {'name': 'Product 4', 'price': 40.0, 'image': 'shirt.jpeg', 'category': 'Shirts'},
-  {'name': 'Product 5', 'price': 35.0, 'image': 'shirtw.jpeg', 'category': 'Shirts'},
+  {
+    'name': 'Product 1',
+    'price': 20.0,
+    'image': 'jacket.jpg',
+    'category': 'Jackets'
+  },
+  {
+    'name': 'Product 2',
+    'price': 30.0,
+    'image': 'jacketw.jpeg',
+    'category': 'Jackets'
+  },
+  {
+    'name': 'Product 3',
+    'price': 25.0,
+    'image': 'jeans.jpeg',
+    'category': 'Pants'
+  },
+  {
+    'name': 'Product 4',
+    'price': 40.0,
+    'image': 'shirt.jpeg',
+    'category': 'Shirts'
+  },
+  {
+    'name': 'Product 5',
+    'price': 35.0,
+    'image': 'shirtw.jpeg',
+    'category': 'Shirts'
+  },
 ];
 
 Uint8List? globalImageData;
@@ -50,7 +74,9 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     cart = [];
     _widgetOptions = <Widget>[
       HomePage(),
-      CategoriesScreen(addProductUsingGlobalImage: _addProductUsingGlobalImage, addToCart: _addToCart),
+      CategoriesScreen(
+          addProductUsingGlobalImage: _addProductUsingGlobalImage,
+          addToCart: _addToCart),
       CartScreen(cart: cart),
       ProfileScreen(addImageToProducts: _addImageToProducts),
     ];
@@ -65,7 +91,8 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
   void _addImageToProducts(Uint8List imageData) async {
     setState(() {
       globalImageData = imageData;
-      _widgetOptions[3] = ProfileScreen(addImageToProducts: _addImageToProducts);
+      _widgetOptions[3] =
+          ProfileScreen(addImageToProducts: _addImageToProducts);
     });
   }
 
@@ -142,7 +169,8 @@ class CategoriesScreen extends StatefulWidget {
   final Function(Uint8List)? addProductUsingGlobalImage;
   final Function(Map<String, dynamic>)? addToCart;
 
-  CategoriesScreen({Key? key, this.addProductUsingGlobalImage, this.addToCart}) : super(key: key);
+  CategoriesScreen({Key? key, this.addProductUsingGlobalImage, this.addToCart})
+      : super(key: key);
 
   @override
   _CategoriesScreenState createState() => _CategoriesScreenState();
@@ -167,7 +195,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       return products;
     } else {
       final String selectedCategory = categories[_selectedCategoryIndex];
-      return products.where((product) => product['category'] == selectedCategory).toList();
+      return products
+          .where((product) => product['category'] == selectedCategory)
+          .toList();
     }
   }
 
@@ -553,7 +583,8 @@ class _PromptAreaState extends State<_PromptArea> {
   }
 
   Future<void> _generateImageFromPrompt(String prompt) async {
-    final apiUrl = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+    final apiUrl =
+        "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
     final token = "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";
 
     try {
