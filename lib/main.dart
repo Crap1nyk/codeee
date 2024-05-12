@@ -3,7 +3,7 @@ import 'package:part3/pages/ClothingHomePage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:part3/pages/LoginScreen.dart';
 import 'package:part3/pages/SplashScreen.dart';
-import 'package:part3/pages/SignupScreen.dart;
+import 'package:part3/pages/SignupScreen.dart';
 
 void main() async {
   // Ensure that Firebase is initialized
@@ -11,10 +11,7 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
-
-
-void main() {
-  runApp(ClothingApp());
+  runApp(MyApp());
 }
 
 class ClothingApp extends StatelessWidget {
