@@ -1,21 +1,24 @@
 {
   "project_info": {
-    "project_number": "729795514539",
-    "project_id": "clothify-3c782",
-    "storage_bucket": "clothify-3c782.appspot.com"
+    "project_number": "968872425655",
+    "project_id": "clothify-be544",
+    "storage_bucket": "clothify-be544.appspot.com"
+
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:729795514539:android:9c9acb72f2b4b77cade7ee",
+        "mobilesdk_app_id": "1:968872425655:android:9f29ec120b0f6fdea9f532",
         "android_client_info": {
-          "package_name": "com.android.application"
+          "package_name": "com.example.project1"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBXYfoRcaWwDyfkUbcmzzxx7iL_XEji1sc"
+
+          "current_key": "AIzaSyAgVczfeyI_c4uGnQcgdCh1MNPaiaKqZcI"
+
         }
       ],
       "services": {

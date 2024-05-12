@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:part3/pages/ClothingHomePage.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:part3/pages/LoginScreen.dart';
 import 'package:part3/pages/SplashScreen.dart';
-import 'package:part3/pages/SignupScreen.dart';
+import 'package:part3/pages/SignupScreen.dart;
+
+void main() async {
+  // Ensure that Firebase is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
 
 void main() {
