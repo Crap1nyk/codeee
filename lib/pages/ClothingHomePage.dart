@@ -4,6 +4,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:part3/pages/SignupScreen.dart';
+
 
 void main() {
   runApp(ClothingApp());
@@ -311,56 +314,74 @@ class ProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.asset(
-                'assets/images/$image',
-                fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailPage(
+              name: name,
+              price: price,
+              image: image,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12.0),
+                  topRight: Radius.circular(12.0),
+                ),
+                child: Image.asset(
+                  'assets/images/$image',
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4.0),
-                Text('\$$price'),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : null,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4.0),
+                  Text('\$$price'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : null,
+                        ),
+                        onPressed: addToFavorites,
                       ),
-                      onPressed: addToFavorites,
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.add_shopping_cart),
-                      onPressed: addToCart,
-                    ),
-                  ],
-                ),
-              ],
+                      IconButton(
+                        icon: Icon(Icons.add_shopping_cart),
+                        onPressed: addToCart,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-
 class CartScreen extends StatelessWidget {
   final List<Map<String, dynamic>> cart;
 
@@ -380,29 +401,30 @@ class CartScreen extends StatelessWidget {
               itemCount: cart.length,
               itemBuilder: (context, index) {
                 final item = cart[index];
-                return ListTile(
-                  leading: Image.asset(
-                    'assets/images/${item['image']}',
-                    width: 50, // Adjust the width as needed
-                    height: 50, // Adjust the height as needed
-                    fit: BoxFit.cover,
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  child: Card(
+                    elevation: 20,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(20.0), // Adjust content padding here
+                      leading: Image.asset(
+                        'assets/images/${item['image']}',
+                        width: 200, // Adjust the width as needed
+                        height: 200, // Adjust the height as needed
+                      ),
+                      title: Text(item['name']),
+                      subtitle: Text('\$${item['price']}'),
+                    ),
                   ),
-                  title: Text(item['name']),
-                  subtitle: Text('\$${item['price']}'),
                 );
               },
             ),
-      bottomNavigationBar: cart.isEmpty
-          ? null
-          : Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Add your checkout logic here
-                },
-                child: Text('Checkout'),
-              ),
-            ),
+      bottomNavigationBar: ElevatedButton(
+        onPressed: () {
+          // Add functionality for checkout
+        },
+        child: Text('Checkout'),
+      ),
     );
   }
 }
@@ -606,5 +628,60 @@ class _PromptAreaState extends State<_PromptArea> {
     } catch (e) {
       print("Exception occurred: $e");
     }
+  }
+}
+
+class ProductDetailPage extends StatelessWidget {
+  final String name;
+  final double price;
+  final String image;
+
+  ProductDetailPage({
+    required this.name,
+    required this.price,
+    required this.image,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Product Detail'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.asset(
+              'assets/images/$image',
+              width: double.infinity,
+              height: 200.0,
+              fit: BoxFit.cover,
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              name,
+              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              '\$$price',
+              style: TextStyle(fontSize: 18.0, color: Colors.blue),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Product Description:',
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              'Add your product description here...',
+              style: TextStyle(fontSize: 16.0),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
