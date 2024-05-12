@@ -11,7 +11,7 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(ClothingApp());
 }
 
 class ClothingApp extends StatelessWidget {
