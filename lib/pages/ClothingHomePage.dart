@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:part3/pages/SignupScreen.dart';
 
 void main() {
   runApp(const ClothingApp());
@@ -175,7 +177,8 @@ class CategoriesScreen extends StatefulWidget {
   final Function(Uint8List)? addProductUsingGlobalImage;
   final Function(Map<String, dynamic>)? addToCart;
 
-  const CategoriesScreen({Key? key, this.addProductUsingGlobalImage, this.addToCart})
+  const CategoriesScreen(
+      {Key? key, this.addProductUsingGlobalImage, this.addToCart})
       : super(key: key);
 
   @override
@@ -306,7 +309,8 @@ class ProductItem extends StatelessWidget {
   final VoidCallback addToFavorites;
   final bool isFavorite;
 
-  const ProductItem({Key? key, 
+  const ProductItem({
+    Key? key,
     required this.name,
     required this.price,
     required this.image,
@@ -338,9 +342,9 @@ class ProductItem extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 4.0),
+                SizedBox(height: 4.0),
                 Text('\$$price'),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -353,7 +357,7 @@ class ProductItem extends StatelessWidget {
                       onPressed: addToFavorites,
                     ),
                     IconButton(
-                      icon: const Icon(Icons.add_shopping_cart),
+                      icon: Icon(Icons.add_shopping_cart),
                       onPressed: addToCart,
                     ),
                   ],
@@ -386,15 +390,23 @@ class CartScreen extends StatelessWidget {
               itemCount: cart.length,
               itemBuilder: (context, index) {
                 final item = cart[index];
-                return ListTile(
-                  leading: Image.asset(
-                    'assets/images/${item['image']}',
-                    width: 50, // Adjust the width as needed
-                    height: 50, // Adjust the height as needed
-                    fit: BoxFit.cover,
+                return Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  child: Card(
+                    elevation: 20,
+                    child: ListTile(
+                      contentPadding:
+                          EdgeInsets.all(20.0), // Adjust content padding here
+                      leading: Image.asset(
+                        'assets/images/${item['image']}',
+                        width: 200, // Adjust the width as needed
+                        height: 200, // Adjust the height as needed
+                      ),
+                      title: Text(item['name']),
+                      subtitle: Text('\$${item['price']}'),
+                    ),
                   ),
-                  title: Text(item['name']),
-                  subtitle: Text('\$${item['price']}'),
                 );
               },
             ),
@@ -406,7 +418,7 @@ class CartScreen extends StatelessWidget {
                 onPressed: () {
                   // Add your checkout logic here
                 },
-                child: const Text('Checkout'),
+                child: Text('Checkout'),
               ),
             ),
     );
@@ -418,7 +430,8 @@ final GlobalKey<_ImageAreaState> _imageAreaKey = GlobalKey();
 class ProfileScreen extends StatelessWidget {
   final Function(Uint8List) addImageToProducts;
 
-  const ProfileScreen({Key? key, required this.addImageToProducts}) : super(key: key);
+  const ProfileScreen({Key? key, required this.addImageToProducts})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -612,5 +625,60 @@ class _PromptAreaState extends State<_PromptArea> {
     } catch (e) {
       print("Exception occurred: $e");
     }
+  }
+}
+
+class ProductDetailPage extends StatelessWidget {
+  final String name;
+  final double price;
+  final String image;
+
+  ProductDetailPage({
+    required this.name,
+    required this.price,
+    required this.image,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Product Detail'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.asset(
+              'assets/images/$image',
+              width: double.infinity,
+              height: 200.0,
+              fit: BoxFit.cover,
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              name,
+              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              '\$$price',
+              style: TextStyle(fontSize: 18.0, color: Colors.blue),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Product Description:',
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              'Add your product description here...',
+              style: TextStyle(fontSize: 16.0),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

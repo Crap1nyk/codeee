@@ -3,6 +3,7 @@
     "project_number": "968872425655",
     "project_id": "clothify-be544",
     "storage_bucket": "clothify-be544.appspot.com"
+
   },
   "client": [
     {
@@ -15,7 +16,9 @@
       "oauth_client": [],
       "api_key": [
         {
+
           "current_key": "AIzaSyAgVczfeyI_c4uGnQcgdCh1MNPaiaKqZcI"
+
         }
       ],
       "services": {

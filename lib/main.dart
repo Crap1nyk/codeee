@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:part3/pages/ClothingHomePage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:part3/pages/LoginScreen.dart';
+import 'package:part3/pages/SplashScreen.dart';
+import 'package:part3/pages/SignupScreen.dart';
 
 void main() async {
   // Ensure that Firebase is initialized
@@ -9,28 +12,23 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const Home(),
+      home: Home(),
       theme: ThemeData(
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        primaryColor: Colors.indigo[900],
+        primarySwatch: Colors.blue,
       ),
     );
   }
 }
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-
   @override
   _HomeState createState() => _HomeState();
 }
@@ -40,9 +38,9 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pages Example'),
+        title: Text('Pages Example'),
       ),
-      body: const Column(
+      body: Column(
         children: [
           Expanded(child: ClothingHomePage()),
         ],
