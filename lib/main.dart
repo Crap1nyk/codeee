@@ -8,29 +8,52 @@ import 'package:part3/pages/SignupScreen.dart';
 void main() async {
   // Ensure that Firebase is initialized
   WidgetsFlutterBinding.ensureInitialized();
-
+  // try {
+  //   await Firebase.initializeApp();
+  //   print('Firebase initialized successfully');
+  // } catch (e) {
+  //   print('Failed to initialize Firebase: $e');
+  // }
   // Initialize Firebase
   await Firebase.initializeApp();
-  runApp(ClothingApp());
+
+
+  runApp(MyApp());
+
 }
 
-class ClothingApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Clothing App',
+      home: Home(),
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      // Define initial route as Splash screen
-      initialRoute: '/splash',
-      routes: {
-        '/splash': (context) => SplashScreen(), // Define route for SplashScreen
-        '/login': (context) => LoginScreen(), // Define route for LoginScreen
-        '/home': (context) => ClothingHomePage(), // Define route for ClothingHomePage
-        '/signup': (context) => SignupScreen(), 
-      },
+    );
+  }
+}
+
+class Home extends StatefulWidget {
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Pages Example'),
+      ),
+      body: Column(
+        children: [
+          // Expanded(child: ClothingHomePage()),
+          // Expanded(child: LoginScreen()),
+          Expanded(child: SignupScreen()),
+        ],
+      ),
     );
   }
 }
