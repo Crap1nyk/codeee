@@ -17,7 +17,9 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp();
 
+
   runApp(MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
