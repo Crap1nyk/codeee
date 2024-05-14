@@ -48,8 +48,8 @@ class _HomeState extends State<Home> {
       body: Column(
         children: [
           // Expanded(child: ClothingHomePage()),
-          Expanded(child: LoginScreen()),
-          // Expanded(child: SignupScreen()),
+          // Expanded(child: LoginScreen()),
+          Expanded(child: SignupScreen()),
         ],
       ),
     );
