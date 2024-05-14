@@ -8,7 +8,12 @@ import 'package:part3/pages/SignupScreen.dart';
 void main() async {
   // Ensure that Firebase is initialized
   WidgetsFlutterBinding.ensureInitialized();
-
+  // try {
+  //   await Firebase.initializeApp();
+  //   print('Firebase initialized successfully');
+  // } catch (e) {
+  //   print('Failed to initialize Firebase: $e');
+  // }
   // Initialize Firebase
   await Firebase.initializeApp();
 
@@ -42,7 +47,9 @@ class _HomeState extends State<Home> {
       ),
       body: Column(
         children: [
-          Expanded(child: ClothingHomePage()),
+          // Expanded(child: ClothingHomePage()),
+          // Expanded(child: LoginScreen()),
+          Expanded(child: SignupScreen()),
         ],
       ),
     );
