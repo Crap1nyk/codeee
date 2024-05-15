@@ -1,21 +1,13 @@
 buildscript {
-<<<<<<< HEAD
-=======
-    ext.kotlin_version = '1.7.1' // replace with the latest version
->>>>>>> ed97f732aa2255a07ab83d92f3bd89f7b34cd046
     repositories {
         google()
         mavenCentral()
     }
-<<<<<<< HEAD
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10"
     }
 }
 
-=======
-}
->>>>>>> ed97f732aa2255a07ab83d92f3bd89f7b34cd046
 allprojects {
     repositories {
         google()
@@ -30,11 +22,5 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
-<<<<<<< HEAD
 // Customize the behavior of the existing 'clean' task
 apply plugin: 'kotlin'
-=======
-tasks.register("clean", Delete) {
-    delete rootProject.buildDir
-}
->>>>>>> ed97f732aa2255a07ab83d92f3bd89f7b34cd046
