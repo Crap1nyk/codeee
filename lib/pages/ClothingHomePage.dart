@@ -7,9 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:part3/pages/SignupScreen.dart';
 
-
 void main() {
-  runApp(ClothingApp());
+  runApp(const ClothingApp());
 }
 
 List<Map<String, dynamic>> products = [
@@ -48,6 +47,8 @@ List<Map<String, dynamic>> products = [
 Uint8List? globalImageData;
 
 class ClothingApp extends StatelessWidget {
+  const ClothingApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -56,12 +57,14 @@ class ClothingApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: ClothingHomePage(),
+      home: const ClothingHomePage(),
     );
   }
 }
 
 class ClothingHomePage extends StatefulWidget {
+  const ClothingHomePage({Key? key}) : super(key: key);
+
   @override
   _ClothingHomePageState createState() => _ClothingHomePageState();
 }
@@ -76,7 +79,7 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     super.initState();
     cart = [];
     _widgetOptions = <Widget>[
-      HomePage(),
+      const HomePage(),
       CategoriesScreen(
           addProductUsingGlobalImage: _addProductUsingGlobalImage,
           addToCart: _addToCart),
@@ -128,7 +131,7 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -155,13 +158,15 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
 }
 
 class HomePage extends StatelessWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
+        title: const Text('Home'),
       ),
-      body: Center(
+      body: const Center(
         child: Text('Home Page'),
       ),
     );
@@ -172,7 +177,8 @@ class CategoriesScreen extends StatefulWidget {
   final Function(Uint8List)? addProductUsingGlobalImage;
   final Function(Map<String, dynamic>)? addToCart;
 
-  CategoriesScreen({Key? key, this.addProductUsingGlobalImage, this.addToCart})
+  const CategoriesScreen(
+      {Key? key, this.addProductUsingGlobalImage, this.addToCart})
       : super(key: key);
 
   @override
@@ -225,14 +231,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
+        const Padding(
+          padding: EdgeInsets.all(16.0),
           child: Text(
             'Categories',
             style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
           ),
         ),
-        Container(
+        SizedBox(
           height: 100,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -255,8 +261,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
         Expanded(
           child: GridView.builder(
-            padding: EdgeInsets.all(16.0),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            padding: const EdgeInsets.all(16.0),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 16.0,
               crossAxisSpacing: 16.0,
@@ -279,12 +285,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         GestureDetector(
           onTap: _addProductUsingGlobalImage,
           child: Container(
-            padding: EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(12.0),
             decoration: BoxDecoration(
               color: Colors.blue,
               borderRadius: BorderRadius.circular(8.0),
             ),
-            child: Text(
+            child: const Text(
               'Add Product with Global Image',
               style: TextStyle(color: Colors.white),
             ),
@@ -303,98 +309,81 @@ class ProductItem extends StatelessWidget {
   final VoidCallback addToFavorites;
   final bool isFavorite;
 
-  ProductItem({
+  const ProductItem({
+    Key? key,
     required this.name,
     required this.price,
     required this.image,
     required this.addToCart,
     required this.addToFavorites,
     required this.isFavorite,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailPage(
-              name: name,
-              price: price,
-              image: image,
+    return Card(
+      elevation: 4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Image.asset(
+                'assets/images/$image',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-        );
-      },
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12.0),
-                  topRight: Radius.circular(12.0),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                child: Image.asset(
-                  'assets/images/$image',
+                SizedBox(height: 4.0),
+                Text('\$$price'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : null,
+                      ),
+                      onPressed: addToFavorites,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add_shopping_cart),
+                      onPressed: addToCart,
+                    ),
+                  ],
                 ),
-              ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 4.0),
-                  Text('\$$price'),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : null,
-                        ),
-                        onPressed: addToFavorites,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.add_shopping_cart),
-                        onPressed: addToCart,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
+
 class CartScreen extends StatelessWidget {
   final List<Map<String, dynamic>> cart;
 
-  CartScreen({required this.cart});
+  const CartScreen({Key? key, required this.cart}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cart'),
+        title: const Text('Cart'),
       ),
       body: cart.isEmpty
-          ? Center(
+          ? const Center(
               child: Text('Your cart is empty'),
             )
           : ListView.builder(
@@ -402,11 +391,13 @@ class CartScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final item = cart[index];
                 return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   child: Card(
                     elevation: 20,
                     child: ListTile(
-                      contentPadding: EdgeInsets.all(20.0), // Adjust content padding here
+                      contentPadding:
+                          EdgeInsets.all(20.0), // Adjust content padding here
                       leading: Image.asset(
                         'assets/images/${item['image']}',
                         width: 200, // Adjust the width as needed
@@ -419,12 +410,17 @@ class CartScreen extends StatelessWidget {
                 );
               },
             ),
-      bottomNavigationBar: ElevatedButton(
-        onPressed: () {
-          // Add functionality for checkout
-        },
-        child: Text('Checkout'),
-      ),
+      bottomNavigationBar: cart.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  // Add your checkout logic here
+                },
+                child: Text('Checkout'),
+              ),
+            ),
     );
   }
 }
@@ -434,13 +430,14 @@ final GlobalKey<_ImageAreaState> _imageAreaKey = GlobalKey();
 class ProfileScreen extends StatelessWidget {
   final Function(Uint8List) addImageToProducts;
 
-  ProfileScreen({required this.addImageToProducts});
+  const ProfileScreen({Key? key, required this.addImageToProducts})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: const Text('Profile'),
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -449,9 +446,9 @@ class ProfileScreen extends StatelessWidget {
             children: <Widget>[
               _PromptArea(),
               _ImageArea(key: _imageAreaKey),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               _FilterSliders(),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
                   final imageData = _imageAreaKey.currentState?.imageData;
@@ -460,7 +457,7 @@ class ProfileScreen extends StatelessWidget {
                     addImageToProducts(imageData);
                   }
                 },
-                child: Text('Save Image Globally'),
+                child: const Text('Save Image Globally'),
               ),
             ],
           ),
@@ -471,7 +468,7 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _ImageArea extends StatefulWidget {
-  _ImageArea({Key? key}) : super(key: key);
+  const _ImageArea({Key? key}) : super(key: key);
 
   @override
   _ImageAreaState createState() => _ImageAreaState();
@@ -491,7 +488,7 @@ class _ImageAreaState extends State<_ImageArea> {
       ),
       child: imageData != null
           ? Image.memory(imageData!)
-          : Center(
+          : const Center(
               child: Text(
                 'Output Image',
                 style: TextStyle(fontSize: 20.0),
@@ -517,14 +514,14 @@ class _FilterSlidersState extends State<_FilterSliders> {
   double _sliderValue2 = 0;
   double _sliderValue3 = 0;
   double _sliderValue4 = 0;
-  double _sliderValue5 = 0;
-  double _sliderValue6 = 0;
+  final double _sliderValue5 = 0;
+  final double _sliderValue6 = 0;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Text('Filters'),
+        const Text('Filters'),
         Slider(
           value: _sliderValue1,
           onChanged: (newValue) {
@@ -584,15 +581,15 @@ class _PromptArea extends StatefulWidget {
 }
 
 class _PromptAreaState extends State<_PromptArea> {
-  TextEditingController _textFieldController = TextEditingController();
+  final TextEditingController _textFieldController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(20.0),
       child: TextField(
         controller: _textFieldController,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           hintText: 'Enter prompt text...',
           prefixIcon: Icon(Icons.search),
           suffixIcon: Icon(Icons.camera_alt),
@@ -605,9 +602,9 @@ class _PromptAreaState extends State<_PromptArea> {
   }
 
   Future<void> _generateImageFromPrompt(String prompt) async {
-    final apiUrl =
+    const apiUrl =
         "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
-    final token = "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";
+    const token = "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";
 
     try {
       final response = await http.post(
