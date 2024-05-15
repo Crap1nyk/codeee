@@ -11,7 +11,8 @@ class SplashScreen extends StatelessWidget {
     Future.delayed(Duration(seconds: 2), () {
       // Navigate to either login or home page based on authentication status
       Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => isAuthenticated ? ClothingHomePage() : LoginScreen(),
+        builder: (context) =>
+            isAuthenticated ? ClothingHomePage() : LoginScreen(),
       ));
     });
 
