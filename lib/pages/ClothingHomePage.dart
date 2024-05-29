@@ -6,11 +6,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:part3/pages/SignupScreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() {
   runApp(const ClothingApp());
 }
 
+// list of items present in the categories section
 List<Map<String, dynamic>> products = [
   {
     'name': 'Product 1',
@@ -102,6 +105,7 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     });
   }
 
+// saves the image in device
   Future<String> saveImage(Uint8List imageData) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/global_image.jpg';
@@ -110,6 +114,7 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     return filePath;
   }
 
+// adding new product to product list
   void _addProductUsingGlobalImage(Uint8List imageData) async {
     final String imagePath = await saveImage(imageData);
     products.add({
@@ -126,6 +131,7 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     });
   }
 
+// creating the bottom navigation bar
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -373,8 +379,13 @@ class ProductItem extends StatelessWidget {
 
 class CartScreen extends StatelessWidget {
   final List<Map<String, dynamic>> cart;
+  final List<Uint8List> products = [];
 
-  const CartScreen({Key? key, required this.cart}) : super(key: key);
+  void addProduct(Uint8List product) {
+    products.add(product);
+  }
+
+  CartScreen({Key? key, required this.cart}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -382,34 +393,63 @@ class CartScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Cart'),
       ),
-      body: cart.isEmpty
-          ? const Center(
-              child: Text('Your cart is empty'),
-            )
-          : ListView.builder(
-              itemCount: cart.length,
-              itemBuilder: (context, index) {
-                final item = cart[index];
-                return Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                  child: Card(
-                    elevation: 20,
-                    child: ListTile(
-                      contentPadding:
-                          EdgeInsets.all(20.0), // Adjust content padding here
-                      leading: Image.asset(
-                        'assets/images/${item['image']}',
-                        width: 200, // Adjust the width as needed
-                        height: 200, // Adjust the height as needed
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser?.uid)
+            .collection('products')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Something went wrong');
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Text("Loading");
+          }
+
+          final cart =
+              snapshot.data?.docs.map((doc) => doc.data()).toList() ?? [];
+
+          return cart.isEmpty
+              ? const Center(
+                  child: Text('Your cart is empty'),
+                )
+              : ListView.builder(
+                  itemCount: cart.length,
+                  itemBuilder: (context, index) {
+                    final item = cart[index] as Map<String, dynamic>;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      child: Card(
+                        elevation: 20,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(
+                              20.0), // Adjust content padding here
+                          leading: item != null
+                              ? (item['image'] is List
+                                  ? Image.memory(
+                                      Uint8List.fromList(
+                                          (item['image'] as List).cast<int>()),
+                                      width: 200, // Adjust the width as needed
+                                      height:
+                                          200, // Adjust the height as needed
+                                    )
+                                  : null) // handle non-list image data here
+                              : null,
+                          title: Text(
+                              (item['name'] is String ? item['name'] : '')
+                                  .toString()),
+                          subtitle: Text(
+                              '\$${(item['price'] is num ? item['price'] : 0).toString()}'),
+                        ),
                       ),
-                      title: Text(item['name']),
-                      subtitle: Text('\$${item['price']}'),
-                    ),
-                  ),
+                    );
+                  },
                 );
-              },
-            ),
+        },
+      ),
       bottomNavigationBar: cart.isEmpty
           ? null
           : Padding(
@@ -450,11 +490,29 @@ class ProfileScreen extends StatelessWidget {
               _FilterSliders(),
               const SizedBox(height: 20.0),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   final imageData = _imageAreaKey.currentState?.imageData;
                   if (imageData != null) {
                     globalImageData = imageData;
                     addImageToProducts(imageData);
+                    final newProduct = {
+                      'name': 'New Product',
+                      'price': 0.0,
+                      'image': imageData,
+                      'category': 'New Category',
+                    };
+                    // products.add(newProduct); //product is added to categories
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      final userId = user.uid;
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userId)
+                          .collection('products')
+                          .add(newProduct);
+
+                      print("new product added to firebase");
+                    }
                   }
                 },
                 child: const Text('Save Image Globally'),
