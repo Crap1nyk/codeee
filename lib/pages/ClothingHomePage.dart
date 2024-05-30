@@ -83,9 +83,7 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     cart = [];
     _widgetOptions = <Widget>[
       const HomePage(),
-      CategoriesScreen(
-          addProductUsingGlobalImage: _addProductUsingGlobalImage,
-          addToCart: _addToCart),
+      UserScreen(),
       CartScreen(cart: cart),
       ProfileScreen(addImageToProducts: _addImageToProducts),
     ];
@@ -105,7 +103,6 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     });
   }
 
-// saves the image in device
   Future<String> saveImage(Uint8List imageData) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/global_image.jpg';
@@ -114,24 +111,12 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
     return filePath;
   }
 
-// adding new product to product list
-  void _addProductUsingGlobalImage(Uint8List imageData) async {
-    final String imagePath = await saveImage(imageData);
-    products.add({
-      'name': 'Globally Saved Image',
-      'price': 0.0,
-      'image': imagePath,
-      'category': 'Accessories',
-    });
-  }
-
   void _addToCart(Map<String, dynamic> product) {
     setState(() {
       cart.add(product);
     });
   }
 
-// creating the bottom navigation bar
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,8 +128,8 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categories',
+            icon: Icon(Icons.account_circle),
+            label: 'User',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart),
@@ -179,199 +164,36 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class CategoriesScreen extends StatefulWidget {
-  final Function(Uint8List)? addProductUsingGlobalImage;
-  final Function(Map<String, dynamic>)? addToCart;
-
-  const CategoriesScreen(
-      {Key? key, this.addProductUsingGlobalImage, this.addToCart})
-      : super(key: key);
-
-  @override
-  _CategoriesScreenState createState() => _CategoriesScreenState();
-}
-
-class _CategoriesScreenState extends State<CategoriesScreen> {
-  int _selectedCategoryIndex = 0;
-
-  final List<String> categories = [
-    'All categories',
-    'Shirts',
-    'Pants',
-    'Dresses',
-    'Jackets',
-    'Accessories',
-  ];
-
-  List<Map<String, dynamic>> favorites = [];
-
-  List<Map<String, dynamic>> getFilteredProducts() {
-    if (_selectedCategoryIndex == 0) {
-      return products;
-    } else {
-      final String selectedCategory = categories[_selectedCategoryIndex];
-      return products
-          .where((product) => product['category'] == selectedCategory)
-          .toList();
-    }
-  }
-
-  void addToFavorites(Map<String, dynamic> product) {
-    setState(() {
-      if (!favorites.contains(product)) {
-        favorites.add(product);
-      } else {
-        favorites.remove(product);
-      }
-    });
-  }
-
-  void _addProductUsingGlobalImage() {
-    if (widget.addProductUsingGlobalImage != null && globalImageData != null) {
-      widget.addProductUsingGlobalImage!(globalImageData!);
-    }
-  }
-
+class UserScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            'Categories',
-            style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.account_circle,
+              size: 100,
+              color: Colors.grey[700],
+            ),
+            SizedBox(height: 20),
+            Text(
+              'User Information',
+              style: TextStyle(fontSize: 24),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                // Add user-related actions here
+              },
+              child: Text('User Actions'),
+            ),
+          ],
         ),
-        SizedBox(
-          height: 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ChoiceChip(
-                  label: Text(categories[index]),
-                  selected: _selectedCategoryIndex == index,
-                  onSelected: (selected) {
-                    setState(() {
-                      _selectedCategoryIndex = selected ? index : 0;
-                    });
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16.0),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 16.0,
-              crossAxisSpacing: 16.0,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: getFilteredProducts().length,
-            itemBuilder: (BuildContext context, int index) {
-              final product = getFilteredProducts()[index];
-              return ProductItem(
-                name: product['name'],
-                price: product['price'],
-                image: product['image'],
-                addToCart: () => widget.addToCart!(product), // Change this line
-                addToFavorites: () => addToFavorites(product),
-                isFavorite: favorites.contains(product),
-              );
-            },
-          ),
-        ),
-        GestureDetector(
-          onTap: _addProductUsingGlobalImage,
-          child: Container(
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: const Text(
-              'Add Product with Global Image',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ProductItem extends StatelessWidget {
-  final String name;
-  final double price;
-  final String image;
-  final VoidCallback addToCart;
-  final VoidCallback addToFavorites;
-  final bool isFavorite;
-
-  const ProductItem({
-    Key? key,
-    required this.name,
-    required this.price,
-    required this.image,
-    required this.addToCart,
-    required this.addToFavorites,
-    required this.isFavorite,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.asset(
-                'assets/images/$image',
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4.0),
-                Text('\$$price'),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : null,
-                      ),
-                      onPressed: addToFavorites,
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.add_shopping_cart),
-                      onPressed: addToCart,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -426,17 +248,16 @@ class CartScreen extends StatelessWidget {
                         elevation: 20,
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(
-                              20.0), // Adjust content padding here
+                              20.0),
                           leading: item != null
                               ? (item['image'] is List
                                   ? Image.memory(
                                       Uint8List.fromList(
                                           (item['image'] as List).cast<int>()),
-                                      width: 200, // Adjust the width as needed
-                                      height:
-                                          200, // Adjust the height as needed
+                                      width: 200,
+                                      height: 200,
                                     )
-                                  : null) // handle non-list image data here
+                                  : null)
                               : null,
                           title: Text(
                               (item['name'] is String ? item['name'] : '')
@@ -456,7 +277,6 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 onPressed: () {
-                  // Add your checkout logic here
                 },
                 child: Text('Checkout'),
               ),
@@ -501,7 +321,6 @@ class ProfileScreen extends StatelessWidget {
                       'image': imageData,
                       'category': 'New Category',
                     };
-                    // products.add(newProduct); //product is added to categories
                     final user = FirebaseAuth.instance.currentUser;
                     if (user != null) {
                       final userId = user.uid;
@@ -510,125 +329,23 @@ class ProfileScreen extends StatelessWidget {
                           .doc(userId)
                           .collection('products')
                           .add(newProduct);
-
-                      print("new product added to firebase");
                     }
                   }
                 },
-                child: const Text('Save Image Globally'),
+                child: const Text('Add Image to Products'),
               ),
+              const SizedBox(height: 20.0),
+              globalImageData != null
+                  ? Image.memory(
+                      globalImageData!,
+                      width: 200,
+                      height: 200,
+                    )
+                  : const SizedBox.shrink(),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ImageArea extends StatefulWidget {
-  const _ImageArea({Key? key}) : super(key: key);
-
-  @override
-  _ImageAreaState createState() => _ImageAreaState();
-}
-
-class _ImageAreaState extends State<_ImageArea> {
-  Uint8List? imageData;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 200,
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: imageData != null
-          ? Image.memory(imageData!)
-          : const Center(
-              child: Text(
-                'Output Image',
-                style: TextStyle(fontSize: 20.0),
-              ),
-            ),
-    );
-  }
-
-  void updateImageData(Uint8List data) {
-    setState(() {
-      imageData = data;
-    });
-  }
-}
-
-class _FilterSliders extends StatefulWidget {
-  @override
-  _FilterSlidersState createState() => _FilterSlidersState();
-}
-
-class _FilterSlidersState extends State<_FilterSliders> {
-  double _sliderValue1 = 0;
-  double _sliderValue2 = 0;
-  double _sliderValue3 = 0;
-  double _sliderValue4 = 0;
-  final double _sliderValue5 = 0;
-  final double _sliderValue6 = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        const Text('Filters'),
-        Slider(
-          value: _sliderValue1,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue1 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 1',
-        ),
-        Slider(
-          value: _sliderValue2,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue2 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 2',
-        ),
-        Slider(
-          value: _sliderValue3,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue3 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 3',
-        ),
-        Slider(
-          value: _sliderValue4,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue4 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 4',
-        ),
-      ],
     );
   }
 }
@@ -639,104 +356,172 @@ class _PromptArea extends StatefulWidget {
 }
 
 class _PromptAreaState extends State<_PromptArea> {
-  final TextEditingController _textFieldController = TextEditingController();
+  final TextEditingController _promptController = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20.0),
-      child: TextField(
-        controller: _textFieldController,
-        decoration: const InputDecoration(
-          hintText: 'Enter prompt text...',
-          prefixIcon: Icon(Icons.search),
-          suffixIcon: Icon(Icons.camera_alt),
-        ),
-        onSubmitted: (value) {
-          _generateImageFromPrompt(value);
-        },
-      ),
-    );
-  }
+  String _response = '';
 
-  Future<void> _generateImageFromPrompt(String prompt) async {
-    const apiUrl =
-        "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
-    const token = "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";
+  void _generateImage() async {
+    final String apiKey = 'YOUR_API_KEY';
+    final String prompt = _promptController.text;
 
-    try {
+    if (prompt.isNotEmpty) {
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse('https://api.openai.com/v1/images/generations'),
         headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
         },
-        body: jsonEncode({"inputs": prompt}),
+        body: jsonEncode({
+          'model': 'image-alpha-001',
+          'prompt': prompt,
+          'num_images': 1,
+          'size': '1024x1024',
+        }),
       );
 
       if (response.statusCode == 200) {
-        final Uint8List imageData = response.bodyBytes;
-        _imageAreaKey.currentState?.updateImageData(imageData);
+        final responseData = jsonDecode(response.body);
+        final imageUrl = responseData['data'][0]['url'];
+        final imageResponse = await http.get(Uri.parse(imageUrl));
+        final imageData = imageResponse.bodyBytes;
+        _imageAreaKey.currentState?.updateImage(imageData);
+
+        setState(() {
+          _response = 'Image generated successfully!';
+        });
       } else {
-        print("Failed to generate image: ${response.statusCode}");
+        setState(() {
+          _response = 'Failed to generate image';
+        });
       }
-    } catch (e) {
-      print("Exception occurred: $e");
+    } else {
+      setState(() {
+        _response = 'Please enter a prompt';
+      });
     }
   }
-}
-
-class ProductDetailPage extends StatelessWidget {
-  final String name;
-  final double price;
-  final String image;
-
-  ProductDetailPage({
-    required this.name,
-    required this.price,
-    required this.image,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Product Detail'),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: <Widget>[
+          TextField(
+            controller: _promptController,
+            decoration: const InputDecoration(labelText: 'Enter a prompt'),
+          ),
+          const SizedBox(height: 10.0),
+          ElevatedButton(
+            onPressed: _generateImage,
+            child: const Text('Generate Image'),
+          ),
+          const SizedBox(height: 10.0),
+          Text(_response),
+        ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset(
-              'assets/images/$image',
-              width: double.infinity,
-              height: 200.0,
-              fit: BoxFit.cover,
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              name,
-              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8.0),
-            Text(
-              '\$$price',
-              style: TextStyle(fontSize: 18.0, color: Colors.blue),
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              'Product Description:',
-              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8.0),
-            Text(
-              'Add your product description here...',
-              style: TextStyle(fontSize: 16.0),
-            ),
-          ],
+    );
+  }
+}
+
+class _ImageArea extends StatefulWidget {
+  _ImageArea({Key? key}) : super(key: key);
+
+  @override
+  _ImageAreaState createState() => _ImageAreaState();
+
+  void updateImage(Uint8List imageData) {
+    _imageAreaKey.currentState?.updateImage(imageData);
+  }
+
+  Uint8List? get imageData => _imageAreaKey.currentState?.imageData;
+}
+
+class _ImageAreaState extends State<_ImageArea> {
+  Uint8List? _imageData;
+
+  Uint8List? get imageData => _imageData;
+
+  void updateImage(Uint8List imageData) {
+    setState(() {
+      _imageData = imageData;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        const SizedBox(height: 20.0),
+        _imageData != null
+            ? Image.memory(
+                _imageData!,
+                width: 200,
+                height: 200,
+              )
+            : const Placeholder(
+                fallbackWidth: 200.0,
+                fallbackHeight: 200.0,
+              ),
+      ],
+    );
+  }
+}
+
+class _FilterSliders extends StatefulWidget {
+  @override
+  _FilterSlidersState createState() => _FilterSlidersState();
+}
+
+class _FilterSlidersState extends State<_FilterSliders> {
+  double _brightness = 0;
+  double _contrast = 1;
+
+  void _applyFilters() async {
+    final imageData = _imageAreaKey.currentState?.imageData;
+    if (imageData != null) {
+      final result = await FlutterImageCompress.compressWithList(
+        imageData,
+        quality: 100,
+      );
+
+      setState(() {
+        _imageAreaKey.currentState?.updateImage(Uint8List.fromList(result));
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        const Text('Brightness'),
+        Slider(
+          value: _brightness,
+          min: -1,
+          max: 1,
+          onChanged: (value) {
+            setState(() {
+              _brightness = value;
+            });
+          },
         ),
-      ),
+        const Text('Contrast'),
+        Slider(
+          value: _contrast,
+          min: 0,
+          max: 4,
+          onChanged: (value) {
+            setState(() {
+              _contrast = value;
+            });
+          },
+        ),
+        ElevatedButton(
+          onPressed: _applyFilters,
+          child: const Text('Apply Filters'),
+        ),
+      ],
     );
   }
 }
