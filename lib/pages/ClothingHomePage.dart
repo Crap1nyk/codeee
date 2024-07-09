@@ -6,27 +6,56 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/intl.dart';
 import 'package:part3/models/community_model.dart';
 import 'product_page.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 // Entry point of the application
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialize Firebase app
+  await Firebase.initializeApp();
+  // Initialize Firebase app
   runApp(const ClothingApp()); // Run the Flutter application
 }
 
 // Sample product data (replace with your actual data handling logic)
 List<Map<String, dynamic>> products = [
-  {'name': 'Product 1', 'price': 20.0, 'image': 'jacket.jpg', 'category': 'Jackets'},
-  {'name': 'Product 2', 'price': 30.0, 'image': 'jacketw.jpeg', 'category': 'Jackets'},
-  {'name': 'Product 3', 'price': 25.0, 'image': 'jeans.jpeg', 'category': 'Pants'},
-  {'name': 'Product 4', 'price': 40.0, 'image': 'shirt.jpeg', 'category': 'Shirts'},
-  {'name': 'Product 5', 'price': 35.0, 'image': 'shirtw.jpeg', 'category': 'Shirts'},
+  {
+    'name': 'Product 1',
+    'price': 20.0,
+    'image': 'jacket.jpg',
+    'category': 'Jackets'
+  },
+  {
+    'name': 'Product 2',
+    'price': 30.0,
+    'image': 'jacketw.jpeg',
+    'category': 'Jackets'
+  },
+  {
+    'name': 'Product 3',
+    'price': 25.0,
+    'image': 'jeans.jpeg',
+    'category': 'Pants'
+  },
+  {
+    'name': 'Product 4',
+    'price': 40.0,
+    'image': 'shirt.jpeg',
+    'category': 'Shirts'
+  },
+  {
+    'name': 'Product 5',
+    'price': 35.0,
+    'image': 'shirtw.jpeg',
+    'category': 'Shirts'
+  },
 ];
 
 // Global variable to store image data (for demonstration purposes)
@@ -42,7 +71,8 @@ class ClothingApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Clothing App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const ClothingHomePage(), // Set ClothingHomePage as the initial route
+      home:
+          const ClothingHomePage(), // Set ClothingHomePage as the initial route
     );
   }
 }
@@ -57,9 +87,11 @@ class ClothingHomePage extends StatefulWidget {
 
 // State class for ClothingHomePage
 class _ClothingHomePageState extends State<ClothingHomePage> {
-  int _selectedIndex = 0; // Index for current selected bottom navigation bar item
+  int _selectedIndex =
+      0; // Index for current selected bottom navigation bar item
   late List<Map<String, dynamic>> cart; // List to store items in cart
-  late List<Widget> _widgetOptions; // List of widget options for bottom navigation bar items
+  late List<Widget>
+      _widgetOptions; // List of widget options for bottom navigation bar items
 
   @override
   void initState() {
@@ -69,7 +101,9 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
       const HomePage(), // Home page widget
       const UserScreen(), // User profile screen
       CartScreen(cart: cart), // Cart screen with current cart items
-      ProfileScreen(addImageToProducts: _addImageToProducts), // Profile screen with image upload
+      ProfileScreen(
+          addImageToProducts:
+              _addImageToProducts), // Profile screen with image upload
     ];
   }
 
@@ -84,7 +118,9 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
   void _addImageToProducts(Uint8List imageData) async {
     setState(() {
       globalImageData = imageData; // Set global image data
-      _widgetOptions[3] = ProfileScreen(addImageToProducts: _addImageToProducts); // Update profile screen with new image
+      _widgetOptions[3] = ProfileScreen(
+          addImageToProducts:
+              _addImageToProducts); // Update profile screen with new image
     });
   }
 
@@ -94,10 +130,17 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
       body: _widgetOptions.elementAt(_selectedIndex), // Display selected widget
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'), // Home icon and label
-          BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: 'User'), // User icon and label
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'), // Cart icon and label
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'), // Profile icon and label
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Home'), // Home icon and label
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+              label: 'User'), // User icon and label
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart),
+              label: 'Cart'), // Cart icon and label
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile'), // Profile icon and label
         ],
         currentIndex: _selectedIndex, // Current index of selected item
         selectedItemColor: Colors.blue, // Color of selected item
@@ -118,14 +161,92 @@ class _ClothingHomePageState extends State<ClothingHomePage> {
 }
 
 // Sample Home page widget
-class HomePage extends StatelessWidget {
+
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final ImagePicker _picker = ImagePicker();
+  File? _image;
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future<void> _uploadImage() async {
+    if (_image == null) return;
+
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('User not logged in');
+        return;
+      }
+
+      String uid = user.uid;
+      String uniquePostId =
+          FirebaseFirestore.instance.collection('posts').doc().id;
+      String filePath = 'posts/$uid/$uniquePostId.png';
+
+      UploadTask uploadTask =
+          FirebaseStorage.instance.ref(filePath).putFile(_image!);
+
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(uniquePostId)
+          .set({
+        'uid': uid,
+        'downloadUrl': downloadUrl,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print('Upload successful. Download URL: $downloadUrl');
+    } catch (e) {
+      print('Error uploading image: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home')), // Home page app bar with title
-      body: const Center(child: Text('Home Page')), // Centered text widget for home page
+      appBar: AppBar(
+        title: Text('Home'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            if (_image != null)
+              Image.file(_image!)
+            else
+              Text('No image selected.'),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: Text('Pick Image'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _uploadImage,
+              child: Text('Upload Image'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -152,11 +273,29 @@ class _UserScreenState extends State<UserScreen> {
 
   // Function to fetch user information from Firestore
   Future<void> _fetchUserInfo() async {
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get(); // Get user document from Firestore
-    if (doc.exists) {
-      setState(() {
-        userInfo = doc.data()!; // Set user information if document exists
-      });
+    try {
+      // Get a reference to the Firestore instance
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+      // Specify the location of the document in Firestore
+      // Replace 'users' with the name of your collection and 'user_id' with the id of the current user
+      DocumentReference docRef = firestore.collection('users').doc('user_id');
+
+      // Get the document
+      DocumentSnapshot docSnapshot = await docRef.get();
+
+      // Check if the document exists before trying to read from it
+      if (docSnapshot.exists) {
+        // The document exists, you can safely read from it
+        Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+        // Use the data
+      } else {
+        // The document does not exist
+        print('No document found for user');
+      }
+    } catch (e) {
+      // Handle any errors that occur during the fetch
+      print('Error fetching user info: $e');
     }
   }
 
@@ -166,54 +305,68 @@ class _UserScreenState extends State<UserScreen> {
       appBar: AppBar(
         title: const Text('Profile'), // Profile page app bar with title
       ),
-      body: ListView( // ListView to display user information and options
+      body: ListView(
+        // ListView to display user information and options
         children: [
           if (userInfo.isNotEmpty) // Display user information if available
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  if (userInfo['photoUrl'] != null) // Display user profile image if available
+                  if (userInfo['photoUrl'] !=
+                      null) // Display user profile image if available
                     CircleAvatar(
                       radius: 40,
                       backgroundImage: NetworkImage(userInfo['photoUrl']),
                     ),
-                  Text(userInfo['name'] ?? 'Name not available', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // Display user name
-                  Text('Gender: ${userInfo['gender'] ?? 'Not specified'}'), // Display user gender
-                  Text('Phone: ${userInfo['phone'] ?? 'Not specified'}'), // Display user phone number
-                  Text('Wallet: \$${userInfo['walletAmount'] ?? 0}'), // Display user wallet amount
+                  Text(userInfo['name'] ?? 'Name not available',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)), // Display user name
+                  Text(
+                      'Gender: ${userInfo['gender'] ?? 'Not specified'}'), // Display user gender
+                  Text(
+                      'Phone: ${userInfo['phone'] ?? 'Not specified'}'), // Display user phone number
+                  Text(
+                      'Wallet: \$${userInfo['walletAmount'] ?? 0}'), // Display user wallet amount
                 ],
               ),
             ),
-          ListTile( // List tile for My Orders option
+          ListTile(
+            // List tile for My Orders option
             title: const Text('My Orders'), // My Orders text
             leading: const Icon(Icons.shopping_bag), // Shopping bag icon
             onTap: () {
               // Navigate to My Orders page when tapped
             },
           ),
-          ListTile( // List tile for Personal Info option
+          ListTile(
+            // List tile for Personal Info option
             title: const Text('Personal Info'), // Personal Info text
             leading: const Icon(Icons.person), // Person icon
             onTap: () {
-              _showPersonalInfoDialog(context); // Show personal info dialog when tapped
+              _showPersonalInfoDialog(
+                  context); // Show personal info dialog when tapped
             },
           ),
-          ListTile( // List tile for FAQs option
+          ListTile(
+            // List tile for FAQs option
             title: const Text('FAQs'), // FAQs text
             leading: const Icon(Icons.help), // Help icon
             onTap: () {
               // Navigate to FAQs page when tapped
             },
           ),
-          ListTile( // List tile for Wallet option
+          ListTile(
+            // List tile for Wallet option
             title: const Text('Wallet'), // Wallet text
             leading: const Icon(Icons.account_balance_wallet), // Wallet icon
             onTap: () {
               // Navigate to Wallet page when tapped
             },
           ),
-          ListTile( // List tile for Logout option
+          ListTile(
+            // List tile for Logout option
             title: const Text('Logout'), // Logout text
             leading: const Icon(Icons.logout), // Logout icon
             onTap: () {
@@ -228,7 +381,10 @@ class _UserScreenState extends State<UserScreen> {
 
   // Function to show personal info dialog
   Future<void> _showPersonalInfoDialog(BuildContext context) async {
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get(); // Get user document from Firestore
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get(); // Get user document from Firestore
     if (doc.exists) {
       setState(() {
         userInfo = doc.data()!; // Set user information if document exists
@@ -237,79 +393,123 @@ class _UserScreenState extends State<UserScreen> {
 
     // Initialize form key and controllers
     final _formKey = GlobalKey<FormState>();
-    TextEditingController dobController = TextEditingController(text: userInfo['dob']);
+    TextEditingController dobController =
+        TextEditingController(text: userInfo['dob']);
 
-    showDialog( // Show dialog
+    showDialog(
+      // Show dialog
       context: context,
       builder: (context) {
-        return AlertDialog( // Alert dialog
+        return AlertDialog(
+          // Alert dialog
           title: const Text('Personal Info'), // Personal Info title
-          content: Form( // Form for personal info
+          content: Form(
+            // Form for personal info
             key: _formKey, // Form key
-            child: SingleChildScrollView( // Single child scroll view
-              child: Column( // Column for personal info
-                children: [ // Children
-                  TextFormField( // Text form field
-                    initialValue: userInfo['name'], // Initial value of user information name
-                    decoration: const InputDecoration(labelText: 'Name'), // Decor
-                    onChanged: (value) => userInfo['name'] = value, // On changed
-                    validator: (value) { // Validate
-                      if (value == null || value.isEmpty) { // Value == null or value.isEmpty
+            child: SingleChildScrollView(
+              // Single child scroll view
+              child: Column(
+                // Column for personal info
+                children: [
+                  // Children
+                  TextFormField(
+                    // Text form field
+                    initialValue: userInfo[
+                        'name'], // Initial value of user information name
+                    decoration:
+                        const InputDecoration(labelText: 'Name'), // Decor
+                    onChanged: (value) =>
+                        userInfo['name'] = value, // On changed
+                    validator: (value) {
+                      // Validate
+                      if (value == null || value.isEmpty) {
+                        // Value == null or value.isEmpty
                         return 'Please enter your name'; // Please enter your name
                       }
                       return null; // Return null
                     },
                   ),
-                  TextFormField( // Text form field
-                    initialValue: userInfo['phone'], // Initial value of user information phone
-                    decoration: const InputDecoration(labelText: 'Phone'), // Decor
-                    onChanged: (value) => userInfo['phone'] = value, // On changed
-                    validator: (value) { // Validate
-                      if (value == null || value.isEmpty) { // Value == null or value.isEmpty
+                  TextFormField(
+                    // Text form field
+                    initialValue: userInfo[
+                        'phone'], // Initial value of user information phone
+                    decoration:
+                        const InputDecoration(labelText: 'Phone'), // Decor
+                    onChanged: (value) =>
+                        userInfo['phone'] = value, // On changed
+                    validator: (value) {
+                      // Validate
+                      if (value == null || value.isEmpty) {
+                        // Value == null or value.isEmpty
                         return 'Please enter your phone number'; // Please enter your phone number
                       }
                       return null; // Return null
                     },
                   ),
-                  DropdownButtonFormField<String>( // Dropdown button form field
-                    value: userInfo['gender'], // Value of user information gender
-                    decoration: const InputDecoration(labelText: 'Gender'), // Decor
-                    items: <String>['Male', 'Female', 'Other'].map<DropdownMenuItem<String>>((String value) { // Items <String>['Male', 'Female', 'Other']map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>( // Return dropdown menu item
+                  DropdownButtonFormField<String>(
+                    // Dropdown button form field
+                    value:
+                        userInfo['gender'], // Value of user information gender
+                    decoration:
+                        const InputDecoration(labelText: 'Gender'), // Decor
+                    items: <String>['Male', 'Female', 'Other']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      // Items <String>['Male', 'Female', 'Other']map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        // Return dropdown menu item
                         value: value, // Value
                         child: Text(value), // Text
                       ); // Return
                     }).toList(), // ToList
-                    onChanged: (value) => userInfo['gender'] = value, // On changed
+                    onChanged: (value) =>
+                        userInfo['gender'] = value, // On changed
                   ),
-                  TextFormField( // Text form field
-                    initialValue: userInfo['address'], // Initial value of user information address
-                    decoration: const InputDecoration(labelText: 'Address'), // Decor
-                    onChanged: (value) => userInfo['address'] = value, // On changed
-                    validator: (value) { // Validate
-                      if (value == null || value.isEmpty) { // Value == null or value.isEmpty
+                  TextFormField(
+                    // Text form field
+                    initialValue: userInfo[
+                        'address'], // Initial value of user information address
+                    decoration:
+                        const InputDecoration(labelText: 'Address'), // Decor
+                    onChanged: (value) =>
+                        userInfo['address'] = value, // On changed
+                    validator: (value) {
+                      // Validate
+                      if (value == null || value.isEmpty) {
+                        // Value == null or value.isEmpty
                         return 'Please enter your address'; // Please enter your address
                       }
                       return null; // Return null
                     },
                   ),
-                  TextFormField( // Text form field
+                  TextFormField(
+                    // Text form field
                     controller: dobController, // Controller
-                    decoration: const InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)'), // Decor
+                    decoration: const InputDecoration(
+                        labelText: 'Date of Birth (YYYY-MM-DD)'), // Decor
                     onChanged: (value) => userInfo['dob'] = value, // On changed
-                    validator: (value) { // Validate
-                      if (value == null || value.isEmpty) { // Value == null or value.isEmpty
+                    validator: (value) {
+                      // Validate
+                      if (value == null || value.isEmpty) {
+                        // Value == null or value.isEmpty
                         return 'Please enter your date of birth'; // Please enter your date of birth
                       }
                       return null; // Return null
                     },
                   ),
-                  TextFormField( // Text form field
-                    initialValue: userInfo['email'], // Initial value of user information email
-                    decoration: const InputDecoration(labelText: 'Email'), // Decor
-                    onChanged: (value) => userInfo['email'] = value, // On changed
-                    validator: (value) { // Validate
-                      if (value == null || value.isEmpty || !value.contains('@')) { // Value == null or value.isEmpty or value.contains(@)
+                  TextFormField(
+                    // Text form field
+                    initialValue: userInfo[
+                        'email'], // Initial value of user information email
+                    decoration:
+                        const InputDecoration(labelText: 'Email'), // Decor
+                    onChanged: (value) =>
+                        userInfo['email'] = value, // On changed
+                    validator: (value) {
+                      // Validate
+                      if (value == null ||
+                          value.isEmpty ||
+                          !value.contains('@')) {
+                        // Value == null or value.isEmpty or value.contains(@)
                         return 'Please enter a valid email address'; // Please enter a valid email address
                       }
                       return null; // Return null
@@ -319,33 +519,54 @@ class _UserScreenState extends State<UserScreen> {
               ), // Children
             ), // Children
           ), // Children
-          actions: [ // Actions
-            TextButton( // Text button
-              onPressed: () { // On pressed
+          actions: [
+            // Actions
+            TextButton(
+              // Text button
+              onPressed: () {
+                // On pressed
                 Navigator.pop(context); // Pop context
               }, // On pressed
               child: const Text('Cancel'), // Child Text Cancel
             ), // TextButton
-            TextButton( // Text button
-              onPressed: () async { // On pressed
-                if (_formKey.currentState!.validate()) { // _formKey.currentState!validate
-                  await FirebaseFirestore.instance.collection('users').doc(user.uid).update({ // Await FirebaseFirestore.instance.collection('users').doc(user.uid).update
+            TextButton(
+              // Text button
+              onPressed: () async {
+                // On pressed
+                if (_formKey.currentState!.validate()) {
+                  // _formKey.currentState!validate
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.uid)
+                      .update({
+                    // Await FirebaseFirestore.instance.collection('users').doc(user.uid).update
                     'name': userInfo['name'], // 'name': userInfo['name']
                     'phone': userInfo['phone'], // 'phone': userInfo['phone']
-                    'gender': userInfo['gender'], // 'gender': userInfo['gender']
-                    'address': userInfo['address'], // 'address': userInfo['address']
+                    'gender':
+                        userInfo['gender'], // 'gender': userInfo['gender']
+                    'address':
+                        userInfo['address'], // 'address': userInfo['address']
                     'dob': userInfo['dob'], // 'dob': userInfo['dob']
                     'email': userInfo['email'], // 'email': userInfo['email']
                   }); // Update
                   Navigator.pop(context); // Pop context
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Updated successfully'))); // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Updated successfully')))
-                  setState(() { // SetState
-                    userInfo['name'] = userInfo['name']; // userInfo['name'] = userInfo['name']
-                    userInfo['phone'] = userInfo['phone']; // userInfo['phone'] = userInfo['phone']
-                    userInfo['gender'] = userInfo['gender']; // userInfo['gender'] = userInfo['gender']
-                    userInfo['address'] = userInfo['address']; // userInfo['address'] = userInfo['address']
-                    userInfo['dob'] = userInfo['dob']; // userInfo['dob'] = userInfo['dob']
-                    userInfo['email'] = userInfo['email']; // userInfo['email'] = userInfo['email']
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text(
+                          'Updated successfully'))); // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Updated successfully')))
+                  setState(() {
+                    // SetState
+                    userInfo['name'] =
+                        userInfo['name']; // userInfo['name'] = userInfo['name']
+                    userInfo['phone'] = userInfo[
+                        'phone']; // userInfo['phone'] = userInfo['phone']
+                    userInfo['gender'] = userInfo[
+                        'gender']; // userInfo['gender'] = userInfo['gender']
+                    userInfo['address'] = userInfo[
+                        'address']; // userInfo['address'] = userInfo['address']
+                    userInfo['dob'] =
+                        userInfo['dob']; // userInfo['dob'] = userInfo['dob']
+                    userInfo['email'] = userInfo[
+                        'email']; // userInfo['email'] = userInfo['email']
                   }); // SetState
                 } // If
               }, // On pressed
@@ -387,7 +608,8 @@ class CartScreen extends StatelessWidget {
             return const Text('Loading');
           }
 
-          final cart = snapshot.data?.docs.map((doc) => doc.data()).toList() ?? [];
+          final cart =
+              snapshot.data?.docs.map((doc) => doc.data()).toList() ?? [];
 
           return cart.isEmpty
               ? const Center(child: Text('Your cart is empty'))
@@ -396,14 +618,16 @@ class CartScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final item = cart[index] as Map<String, dynamic>;
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
                       child: Card(
                         elevation: 20,
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(20.0),
                           leading: item['image'] is List
                               ? Image.memory(
-                                  Uint8List.fromList((item['image'] as List).cast<int>()),
+                                  Uint8List.fromList(
+                                      (item['image'] as List).cast<int>()),
                                   width: 200,
                                   height: 200,
                                 )
@@ -414,7 +638,8 @@ class CartScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ProductPage(product: item),
+                                builder: (context) =>
+                                    ProductPage(product: item),
                               ),
                             );
                           },
@@ -443,7 +668,8 @@ final GlobalKey<_ImageAreaState> _imageAreaKey = GlobalKey();
 class ProfileScreen extends StatelessWidget {
   final Function(Uint8List) addImageToProducts;
 
-  const ProfileScreen({Key? key, required this.addImageToProducts}) : super(key: key);
+  const ProfileScreen({Key? key, required this.addImageToProducts})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -523,7 +749,8 @@ class _ImageAreaState extends State<_ImageArea> {
       ),
       child: imageData != null
           ? Image.memory(imageData!)
-          : const Center(child: Text('Output Image', style: TextStyle(fontSize: 20.0))),
+          : const Center(
+              child: Text('Output Image', style: TextStyle(fontSize: 20.0))),
     );
   }
 }
@@ -624,7 +851,8 @@ class _PromptAreaState extends State<_PromptArea> {
   }
 
   Future<void> _generateImageFromPrompt(String prompt) async {
-    const apiUrl = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+    const apiUrl =
+        "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
     const token = "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";
 
     try {
@@ -705,20 +933,26 @@ class _CommunityPageState extends State<CommunityPage> {
         timestamp: DateTime.now(),
       );
 
-      await FirebaseFirestore.instance.collection('posts').add(newPost.toFirestore());
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .add(newPost.toFirestore());
       _postController.clear();
     }
   }
 
   Widget _buildPostList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('posts').orderBy('timestamp', descending: true).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('posts')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final posts = snapshot.data!.docs.map((doc) => Post.fromFirestore(doc)).toList();
+        final posts =
+            snapshot.data!.docs.map((doc) => Post.fromFirestore(doc)).toList();
 
         return ListView.builder(
           itemCount: posts.length,
@@ -818,7 +1052,9 @@ class _CommunityPageState extends State<CommunityPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final comments = snapshot.data!.docs.map((doc) => Comment.fromFirestore(doc)).toList();
+        final comments = snapshot.data!.docs
+            .map((doc) => Comment.fromFirestore(doc))
+            .toList();
 
         return ListView.builder(
           shrinkWrap: true,
@@ -845,4 +1081,3 @@ class _CommunityPageState extends State<CommunityPage> {
     );
   }
 }
-
