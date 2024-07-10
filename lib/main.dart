@@ -112,7 +112,8 @@ class MainHomePage extends StatelessWidget {
             onPressed: () => _uploadImage(context),
             child: Text('Upload Image'),
           ),
-          Expanded(child: PostsList()), // Display posts
+          Expanded(child: PostsList()),
+          // Expanded(child: SignupScreen()) // Display posts
         ],
       ),
     );
@@ -144,37 +145,6 @@ class PostsList extends StatelessWidget {
   }
 }
 
-class Post {
-  final String id;
-  final String uid;
-  final String downloadUrl;
-  final int likes;
-  final int dislikes;
-  final List<String> comments;
-
-  Post({
-    required this.id,
-    required this.uid,
-    required this.downloadUrl,
-    required this.likes,
-    required this.dislikes,
-    required this.comments,
-  });
-
-  factory Post.fromDocumentSnapshot(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
-    return Post(
-      id: doc.id,
-      uid: data['uid'] ?? '',
-      downloadUrl: data['downloadUrl'] ?? '',
-      likes: data['likes'] ?? 0,
-      dislikes: data['dislikes'] ?? 0,
-      comments: List<String>.from(data['comments'] ?? []),
-    );
-  }
-}
-
 class PostItem extends StatefulWidget {
   final Post post;
 
@@ -185,22 +155,70 @@ class PostItem extends StatefulWidget {
 }
 
 class _PostItemState extends State<PostItem> {
+  final String userId = FirebaseAuth.instance.currentUser!.uid;
+  bool _showComments = false;
+  final TextEditingController _commentController = TextEditingController();
+
   void _likePost() {
-    FirebaseFirestore.instance.collection('posts').doc(widget.post.id).update({
-      'likes': widget.post.likes + 1,
-    });
+    if (!widget.post.likedBy.contains(userId)) {
+      FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.post.id)
+          .update({
+        'likes': widget.post.likes + 1,
+        'likedBy': FieldValue.arrayUnion([userId]),
+        'dislikedBy': FieldValue.arrayRemove([userId]),
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You have already liked this post')),
+      );
+    }
   }
 
   void _dislikePost() {
-    FirebaseFirestore.instance.collection('posts').doc(widget.post.id).update({
-      'dislikes': widget.post.dislikes + 1,
+    if (!widget.post.dislikedBy.contains(userId)) {
+      FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.post.id)
+          .update({
+        'dislikes': widget.post.dislikes + 1,
+        'dislikedBy': FieldValue.arrayUnion([userId]),
+        'likedBy': FieldValue.arrayRemove([userId]),
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You have already disliked this post')),
+      );
+    }
+  }
+
+  void _toggleComments() {
+    setState(() {
+      _showComments = !_showComments;
     });
   }
 
-  void _addComment(String comment) {
-    FirebaseFirestore.instance.collection('posts').doc(widget.post.id).update({
-      'comments': FieldValue.arrayUnion([comment]),
-    });
+  void _addComment(String comment) async {
+    if (comment.isEmpty) return;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.post.id)
+          .update({
+        'comments': FieldValue.arrayUnion([
+          {
+            'comment': comment,
+            'userId': user.uid,
+            'userName': user.displayName ?? 'Anonymous',
+          }
+        ]),
+      });
+
+      _commentController.clear();
+    }
   }
 
   @override
@@ -223,22 +241,83 @@ class _PostItemState extends State<PostItem> {
                 onPressed: _dislikePost,
               ),
               Text(widget.post.dislikes.toString()),
+              IconButton(
+                icon: Icon(Icons.comment),
+                onPressed: _toggleComments,
+              ),
             ],
           ),
-          Column(
-            children:
-                widget.post.comments.map((comment) => Text(comment)).toList(),
-          ),
-          TextField(
-            onSubmitted: (value) {
-              _addComment(value);
-            },
-            decoration: InputDecoration(
-              labelText: 'Add a comment',
-            ),
-          ),
+          _showComments
+              ? Column(
+                  children: [
+                    ...widget.post.comments.map((comment) {
+                      return ListTile(
+                        title: Text(comment['userName']),
+                        subtitle: Text(comment['comment']),
+                      );
+                    }).toList(),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _commentController,
+                              decoration: InputDecoration(
+                                labelText: 'Add a comment',
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.send),
+                            onPressed: () =>
+                                _addComment(_commentController.text),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : Container(),
         ],
       ),
+    );
+  }
+}
+
+class Post {
+  final String id;
+  final String uid;
+  final String downloadUrl;
+  final int likes;
+  final int dislikes;
+  final List<Map<String, dynamic>> comments;
+  final List<String> likedBy;
+  final List<String> dislikedBy;
+
+  Post({
+    required this.id,
+    required this.uid,
+    required this.downloadUrl,
+    required this.likes,
+    required this.dislikes,
+    required this.comments,
+    required this.likedBy,
+    required this.dislikedBy,
+  });
+
+  factory Post.fromDocumentSnapshot(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+
+    return Post(
+      id: doc.id,
+      uid: data['uid'] ?? '',
+      downloadUrl: data['downloadUrl'] ?? '',
+      likes: data['likes'] ?? 0,
+      dislikes: data['dislikes'] ?? 0,
+      comments: List<Map<String, dynamic>>.from(data['comments'] ?? []),
+      likedBy: List<String>.from(data['likedBy'] ?? []),
+      dislikedBy: List<String>.from(data['dislikedBy'] ?? []),
     );
   }
 }
