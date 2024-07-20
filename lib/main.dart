@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:part3/pages/root.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:part3/pages/SignupScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,34 +19,106 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'My App',
-      home: MainHomePage(),
-      // debugShowCheckedModeBanner: false,
-      // home: Home(),
-      // theme: ThemeData(
-      //   primarySwatch: Colors.blue,
-      // ),
+      home: AuthGate(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class Home extends StatefulWidget {
+class AuthGate extends StatelessWidget {
   @override
-  _HomeState createState() => _HomeState();
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.active) {
+          final user = snapshot.data;
+          if (user == null) {
+            return LoginScreen();
+          } else {
+            return MainHomePage();
+          }
+        } else {
+          return Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+      },
+    );
+  }
 }
 
-class _HomeState extends State<Home> {
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  void _login() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: $e')),
+      );
+    }
+  }
+
+  void _signUp() async {
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Signup failed: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pages Example'),
+        title: Text('Login'),
       ),
-      body: Column(
-        children: [
-          // Expanded(child: ClothingHomePage()),
-          // Expanded(child: LoginScreen()),
-          Expanded(child: SignupScreen()),
-        ],
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(labelText: 'Email'),
+            ),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: _login,
+                  child: Text('Login'),
+                ),
+                SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: _signUp,
+                  child: Text('Sign Up'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -105,7 +175,20 @@ class MainHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Main Home Page')), // Home page app bar with title
+        title: const Text('Main Home Page'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           ElevatedButton(
@@ -113,7 +196,6 @@ class MainHomePage extends StatelessWidget {
             child: Text('Upload Image'),
           ),
           Expanded(child: PostsList()),
-          // Expanded(child: SignupScreen()) // Display posts
         ],
       ),
     );
