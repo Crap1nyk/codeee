@@ -15,6 +15,8 @@ import 'product_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart'; // For picking images
+import 'dart:io'; // For File handling
 
 // Entry point of the application
 void main() async {
@@ -259,10 +261,10 @@ class UserScreen extends StatefulWidget {
   _UserScreenState createState() => _UserScreenState();
 }
 
-// State class for user profile screen
 class _UserScreenState extends State<UserScreen> {
   late User user; // Firebase user object
   Map<String, dynamic> userInfo = {}; // Map to store user information
+  File? _image; // Variable to store the selected image
 
   @override
   void initState() {
@@ -274,28 +276,31 @@ class _UserScreenState extends State<UserScreen> {
   // Function to fetch user information from Firestore
   Future<void> _fetchUserInfo() async {
     try {
-      // Get a reference to the Firestore instance
       FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-      // Specify the location of the document in Firestore
-      // Replace 'users' with the name of your collection and 'user_id' with the id of the current user
-      DocumentReference docRef = firestore.collection('users').doc('user_id');
-
-      // Get the document
+      DocumentReference docRef = firestore.collection('users').doc(user.uid);
       DocumentSnapshot docSnapshot = await docRef.get();
 
-      // Check if the document exists before trying to read from it
       if (docSnapshot.exists) {
-        // The document exists, you can safely read from it
-        Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
-        // Use the data
+        setState(() {
+          userInfo = docSnapshot.data() as Map<String, dynamic>;
+        });
       } else {
-        // The document does not exist
         print('No document found for user');
       }
     } catch (e) {
-      // Handle any errors that occur during the fetch
       print('Error fetching user info: $e');
+    }
+  }
+
+  // Function to pick an image from the gallery
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
     }
   }
 
@@ -306,279 +311,188 @@ class _UserScreenState extends State<UserScreen> {
         title: const Text('Profile'), // Profile page app bar with title
       ),
       body: ListView(
-        // ListView to display user information and options
+        padding: const EdgeInsets.all(16.0),
         children: [
-          if (userInfo.isNotEmpty) // Display user information if available
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  if (userInfo['photoUrl'] !=
-                      null) // Display user profile image if available
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundImage: NetworkImage(userInfo['photoUrl']),
-                    ),
-                  Text(userInfo['name'] ?? 'Name not available',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)), // Display user name
-                  Text(
-                      'Gender: ${userInfo['gender'] ?? 'Not specified'}'), // Display user gender
-                  Text(
-                      'Phone: ${userInfo['phone'] ?? 'Not specified'}'), // Display user phone number
-                  Text(
-                      'Wallet: \$${userInfo['walletAmount'] ?? 0}'), // Display user wallet amount
-                ],
-              ),
+          // Rounded UI with user image and information
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: BorderRadius.circular(12.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                ),
+              ],
             ),
-          ListTile(
-            // List tile for My Orders option
-            title: const Text('My Orders'), // My Orders text
-            leading: const Icon(Icons.shopping_bag), // Shopping bag icon
-            onTap: () {
-              // Navigate to My Orders page when tapped
-            },
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[600],
+                    backgroundImage: _image != null
+                        ? FileImage(_image!) as ImageProvider
+                        : (userInfo['photoUrl'] != null
+                            ? NetworkImage(userInfo['photoUrl']!)
+                            : null) as ImageProvider?,
+                    child: _image == null && userInfo['photoUrl'] == null
+                        ? Icon(Icons.camera_alt, color: Colors.white)
+                        : null,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  userInfo['name'] ?? 'Name not available',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Gender: ${userInfo['gender'] ?? 'Not specified'}',
+                  style: TextStyle(color: Colors.white),
+                ),
+                Text(
+                  'Phone: ${userInfo['phone'] ?? 'Not specified'}',
+                  style: TextStyle(color: Colors.white),
+                ),
+                Text(
+                  'Wallet: \$${userInfo['walletAmount'] ?? 0}',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            // List tile for Personal Info option
-            title: const Text('Personal Info'), // Personal Info text
-            leading: const Icon(Icons.person), // Person icon
-            onTap: () {
-              _showPersonalInfoDialog(
-                  context); // Show personal info dialog when tapped
-            },
-          ),
-          ListTile(
-            // List tile for FAQs option
-            title: const Text('FAQs'), // FAQs text
-            leading: const Icon(Icons.help), // Help icon
-            onTap: () {
-              // Navigate to FAQs page when tapped
-            },
-          ),
-          ListTile(
-            // List tile for Wallet option
-            title: const Text('Wallet'), // Wallet text
-            leading: const Icon(Icons.account_balance_wallet), // Wallet icon
-            onTap: () {
-              // Navigate to Wallet page when tapped
-            },
-          ),
-          ListTile(
-            // List tile for Logout option
-            title: const Text('Logout'), // Logout text
-            leading: const Icon(Icons.logout), // Logout icon
-            onTap: () {
-              FirebaseAuth.instance.signOut(); // Sign out current user
-              // Navigate to Login page when tapped
-            },
-          ),
+          SizedBox(height: 20),
+          // List tiles for options
+          _buildListTile(Icons.shopping_bag, 'My Orders', () {
+            // Navigate to My Orders page
+          }),
+          _buildListTile(Icons.person, 'Personal Info', () {
+            _showPersonalInfoDialog(context); // Show personal info dialog
+          }),
+          _buildListTile(Icons.help, 'FAQs', () {
+            // Navigate to FAQs page
+          }),
+          _buildListTile(Icons.account_balance_wallet, 'Wallet', () {
+            // Navigate to Wallet page
+          }),
+          _buildListTile(Icons.logout, 'Logout', () {
+            FirebaseAuth.instance.signOut(); // Sign out current user
+            // Navigate to Login page
+          }),
         ],
       ),
     );
   }
 
+  // Function to create list tiles
+  ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      title: Text(title),
+      leading: Icon(icon),
+      onTap: onTap,
+    );
+  }
+
   // Function to show personal info dialog
   Future<void> _showPersonalInfoDialog(BuildContext context) async {
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get(); // Get user document from Firestore
-    if (doc.exists) {
-      setState(() {
-        userInfo = doc.data()!; // Set user information if document exists
-      });
-    }
-
-    // Initialize form key and controllers
     final _formKey = GlobalKey<FormState>();
-    TextEditingController dobController =
-        TextEditingController(text: userInfo['dob']);
+    TextEditingController dobController = TextEditingController(text: userInfo['dob']);
 
     showDialog(
-      // Show dialog
       context: context,
       builder: (context) {
         return AlertDialog(
-          // Alert dialog
-          title: const Text('Personal Info'), // Personal Info title
+          title: const Text('Personal Info'),
           content: Form(
-            // Form for personal info
-            key: _formKey, // Form key
+            key: _formKey,
             child: SingleChildScrollView(
-              // Single child scroll view
               child: Column(
-                // Column for personal info
                 children: [
-                  // Children
-                  TextFormField(
-                    // Text form field
-                    initialValue: userInfo[
-                        'name'], // Initial value of user information name
-                    decoration:
-                        const InputDecoration(labelText: 'Name'), // Decor
-                    onChanged: (value) =>
-                        userInfo['name'] = value, // On changed
-                    validator: (value) {
-                      // Validate
-                      if (value == null || value.isEmpty) {
-                        // Value == null or value.isEmpty
-                        return 'Please enter your name'; // Please enter your name
-                      }
-                      return null; // Return null
-                    },
-                  ),
-                  TextFormField(
-                    // Text form field
-                    initialValue: userInfo[
-                        'phone'], // Initial value of user information phone
-                    decoration:
-                        const InputDecoration(labelText: 'Phone'), // Decor
-                    onChanged: (value) =>
-                        userInfo['phone'] = value, // On changed
-                    validator: (value) {
-                      // Validate
-                      if (value == null || value.isEmpty) {
-                        // Value == null or value.isEmpty
-                        return 'Please enter your phone number'; // Please enter your phone number
-                      }
-                      return null; // Return null
-                    },
-                  ),
+                  _buildTextFormField('Name', 'name'),
+                  _buildTextFormField('Phone', 'phone'),
                   DropdownButtonFormField<String>(
-                    // Dropdown button form field
-                    value:
-                        userInfo['gender'], // Value of user information gender
-                    decoration:
-                        const InputDecoration(labelText: 'Gender'), // Decor
+                    value: userInfo['gender'],
+                    decoration: const InputDecoration(labelText: 'Gender'),
                     items: <String>['Male', 'Female', 'Other']
                         .map<DropdownMenuItem<String>>((String value) {
-                      // Items <String>['Male', 'Female', 'Other']map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
-                        // Return dropdown menu item
-                        value: value, // Value
-                        child: Text(value), // Text
-                      ); // Return
-                    }).toList(), // ToList
-                    onChanged: (value) =>
-                        userInfo['gender'] = value, // On changed
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (value) => userInfo['gender'] = value,
                   ),
+                  _buildTextFormField('Address', 'address'),
                   TextFormField(
-                    // Text form field
-                    initialValue: userInfo[
-                        'address'], // Initial value of user information address
-                    decoration:
-                        const InputDecoration(labelText: 'Address'), // Decor
-                    onChanged: (value) =>
-                        userInfo['address'] = value, // On changed
+                    controller: dobController,
+                    decoration: const InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)'),
+                    onChanged: (value) => userInfo['dob'] = value,
                     validator: (value) {
-                      // Validate
                       if (value == null || value.isEmpty) {
-                        // Value == null or value.isEmpty
-                        return 'Please enter your address'; // Please enter your address
+                        return 'Please enter your date of birth';
                       }
-                      return null; // Return null
+                      return null;
                     },
                   ),
-                  TextFormField(
-                    // Text form field
-                    controller: dobController, // Controller
-                    decoration: const InputDecoration(
-                        labelText: 'Date of Birth (YYYY-MM-DD)'), // Decor
-                    onChanged: (value) => userInfo['dob'] = value, // On changed
-                    validator: (value) {
-                      // Validate
-                      if (value == null || value.isEmpty) {
-                        // Value == null or value.isEmpty
-                        return 'Please enter your date of birth'; // Please enter your date of birth
-                      }
-                      return null; // Return null
-                    },
-                  ),
-                  TextFormField(
-                    // Text form field
-                    initialValue: userInfo[
-                        'email'], // Initial value of user information email
-                    decoration:
-                        const InputDecoration(labelText: 'Email'), // Decor
-                    onChanged: (value) =>
-                        userInfo['email'] = value, // On changed
-                    validator: (value) {
-                      // Validate
-                      if (value == null ||
-                          value.isEmpty ||
-                          !value.contains('@')) {
-                        // Value == null or value.isEmpty or value.contains(@)
-                        return 'Please enter a valid email address'; // Please enter a valid email address
-                      }
-                      return null; // Return null
-                    },
-                  ),
-                ], // Children
-              ), // Children
-            ), // Children
-          ), // Children
+                  _buildTextFormField('Email', 'email', isEmail: true),
+                ],
+              ),
+            ),
+          ),
           actions: [
-            // Actions
             TextButton(
-              // Text button
               onPressed: () {
-                // On pressed
-                Navigator.pop(context); // Pop context
-              }, // On pressed
-              child: const Text('Cancel'), // Child Text Cancel
-            ), // TextButton
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
             TextButton(
-              // Text button
               onPressed: () async {
-                // On pressed
                 if (_formKey.currentState!.validate()) {
-                  // _formKey.currentState!validate
                   await FirebaseFirestore.instance
                       .collection('users')
                       .doc(user.uid)
-                      .update({
-                    // Await FirebaseFirestore.instance.collection('users').doc(user.uid).update
-                    'name': userInfo['name'], // 'name': userInfo['name']
-                    'phone': userInfo['phone'], // 'phone': userInfo['phone']
-                    'gender':
-                        userInfo['gender'], // 'gender': userInfo['gender']
-                    'address':
-                        userInfo['address'], // 'address': userInfo['address']
-                    'dob': userInfo['dob'], // 'dob': userInfo['dob']
-                    'email': userInfo['email'], // 'email': userInfo['email']
-                  }); // Update
-                  Navigator.pop(context); // Pop context
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text(
-                          'Updated successfully'))); // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Updated successfully')))
-                  setState(() {
-                    // SetState
-                    userInfo['name'] =
-                        userInfo['name']; // userInfo['name'] = userInfo['name']
-                    userInfo['phone'] = userInfo[
-                        'phone']; // userInfo['phone'] = userInfo['phone']
-                    userInfo['gender'] = userInfo[
-                        'gender']; // userInfo['gender'] = userInfo['gender']
-                    userInfo['address'] = userInfo[
-                        'address']; // userInfo['address'] = userInfo['address']
-                    userInfo['dob'] =
-                        userInfo['dob']; // userInfo['dob'] = userInfo['dob']
-                    userInfo['email'] = userInfo[
-                        'email']; // userInfo['email'] = userInfo['email']
-                  }); // SetState
-                } // If
-              }, // On pressed
-              child: const Text('Save'), // Child Text Save
-            ), // TextButton
-          ], // Actions
-        ); // Alert dialog
-      }, // Context
-    ); // Show dialog
+                      .update(userInfo);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Updated successfully')),
+                  );
+                  setState(() {}); // Refresh the UI
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Helper function to create text form fields
+  Widget _buildTextFormField(String label, String key, {bool isEmail = false}) {
+    return TextFormField(
+      initialValue: userInfo[key] ?? '',
+      decoration: InputDecoration(labelText: label),
+      onChanged: (value) => userInfo[key] = value,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your $label';
+        }
+        if (isEmail && (!value.contains('@') || !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value))) {
+          return 'Please enter a valid email address';
+        }
+        return null;
+      },
+    );
   }
 }
-
 class CartScreen extends StatelessWidget {
   final List<Map<String, dynamic>> cart;
   final List<Uint8List> products = [];

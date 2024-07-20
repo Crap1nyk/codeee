@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:part3/pages/ClothingHomePage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,7 @@ class AuthGate extends StatelessWidget {
           if (user == null) {
             return LoginScreen();
           } else {
-            return MainHomePage();
+            return ClothingHomePage(); // Navigate to ClothingHomePage
           }
         } else {
           return Scaffold(
@@ -49,7 +50,6 @@ class AuthGate extends StatelessWidget {
     );
   }
 }
-
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
