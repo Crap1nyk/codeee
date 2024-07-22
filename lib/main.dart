@@ -50,6 +50,7 @@ class AuthGate extends StatelessWidget {
     );
   }
 }
+
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -84,11 +85,61 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
-  
-  void _forgotPassword() {
-    print("Forgot Password clicked");
-    // Handle forgot password logic
+
+  Future<void> _showForgotPasswordDialog(BuildContext context) async {
+    final TextEditingController emailController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to dismiss
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Reset Password'),
+          content: TextField(
+            controller: emailController,
+            decoration: InputDecoration(
+              hintText: 'Enter your email address',
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Dismiss dialog
+              },
+            ),
+            TextButton(
+              child: Text('Send'),
+              onPressed: () async {
+                String email = emailController.text.trim();
+                if (email.isNotEmpty) {
+                  try {
+                    await FirebaseAuth.instance
+                        .sendPasswordResetEmail(email: email);
+                    // Show a success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Password reset email sent.")),
+                    );
+                  } catch (e) {
+                    // Show an error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                              Text("Failed to send password reset email.")),
+                    );
+                  }
+                }
+                Navigator.of(dialogContext).pop(); // Dismiss dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
+
+  final TextEditingController emailController = TextEditingController();
 
   void _loginWithGoogle() {
     print("Login with Google clicked");
@@ -100,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Handle login with Facebook logic
   }
 
-      @override
+  @override
   Widget build(BuildContext context) {
     // Obtain the height of the screen
     final double screenHeight = MediaQuery.of(context).size.height;
@@ -150,7 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    labelStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
+                    labelStyle:
+                        TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
                     filled: true,
                     fillColor: Color.fromARGB(255, 246, 245, 245),
                     border: OutlineInputBorder(
@@ -164,7 +216,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    labelStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
+                    labelStyle:
+                        TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
                     filled: true,
                     fillColor: Color.fromARGB(255, 246, 245, 245),
                     border: OutlineInputBorder(
@@ -176,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 10),
                 GestureDetector(
-                  onTap: _forgotPassword,
+                  onTap: () => _showForgotPasswordDialog(context),
                   child: Text(
                     'Forgot Password?',
                     textAlign: TextAlign.right,
@@ -201,6 +254,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   onPressed: () => _login(context),
+                ),
+                SizedBox(height: 30),
+                ElevatedButton(
+                  child: Text(
+                    'SignUp',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Color.fromARGB(255, 180, 83, 180),
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onPressed: () => _signUp(),
                 ),
                 SizedBox(height: 20),
                 Text(
