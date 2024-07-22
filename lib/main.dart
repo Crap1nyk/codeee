@@ -118,12 +118,12 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                SizedBox(height: 50),
+                SizedBox(height: 100),
                 Image.asset(
                   'assets/images/logo.jpg', // Replace with your image asset path
-                  height: 100,
+                  height: 150,
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 120),
                 Text(
                   'Log In',
                   textAlign: TextAlign.center,
@@ -172,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   obscureText: true,
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                 ),
                 SizedBox(height: 10),
                 GestureDetector(

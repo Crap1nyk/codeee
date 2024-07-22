@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -17,6 +18,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart'; // For picking images
 import 'dart:io'; // For File handling
+import 'package:cupertino_icons/cupertino_icons.dart';
 
 // Entry point of the application
 void main() async {
@@ -304,11 +306,23 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+@override
+Widget build(BuildContext context) {
+  return Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color.fromARGB(255, 0, 0, 0), Color.fromARGB(255, 50, 50, 50)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ),
+    child: Scaffold(
+      backgroundColor: Colors.transparent, // Make Scaffold background transparent
       appBar: AppBar(
-        title: const Text('Profile'), // Profile page app bar with title
+        title: const Text('Profile', style: TextStyle(color: Colors.white)), // White text for app bar title
+        backgroundColor: Colors.transparent,
+        elevation: 0, // No shadow
+        iconTheme: IconThemeData(color: Colors.white), // White icons
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -317,13 +331,17 @@ class _UserScreenState extends State<UserScreen> {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.grey[800],
+              gradient: LinearGradient(
+                colors: [Color.fromRGBO(208, 108, 236, 1), Color.fromARGB(255, 89, 0, 255)], // Gradient colors
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(12.0),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  spreadRadius: 2,
-                  blurRadius: 4,
+                  color: Colors.black54,
+                  blurRadius: 10.0,
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
@@ -333,7 +351,7 @@ class _UserScreenState extends State<UserScreen> {
                   onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.grey[600],
+                    backgroundColor: Colors.grey[800], // Darker grey for the avatar background
                     backgroundImage: _image != null
                         ? FileImage(_image!) as ImageProvider
                         : (userInfo['photoUrl'] != null
@@ -355,51 +373,77 @@ class _UserScreenState extends State<UserScreen> {
                 ),
                 Text(
                   'Gender: ${userInfo['gender'] ?? 'Not specified'}',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white70), // Slightly lighter text color
                 ),
                 Text(
                   'Phone: ${userInfo['phone'] ?? 'Not specified'}',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white70),
                 ),
                 Text(
                   'Wallet: \$${userInfo['walletAmount'] ?? 0}',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white70),
                 ),
               ],
             ),
           ),
           SizedBox(height: 20),
-          // List tiles for options
-          _buildListTile(Icons.shopping_bag, 'My Orders', () {
-            // Navigate to My Orders page
-          }),
-          _buildListTile(Icons.person, 'Personal Info', () {
-            _showPersonalInfoDialog(context); // Show personal info dialog
-          }),
-          _buildListTile(Icons.help, 'FAQs', () {
-            // Navigate to FAQs page
-          }),
-          _buildListTile(Icons.account_balance_wallet, 'Wallet', () {
-            // Navigate to Wallet page
-          }),
-          _buildListTile(Icons.logout, 'Logout', () {
-            FirebaseAuth.instance.signOut(); // Sign out current user
-            // Navigate to Login page
-          }),
+          // Container for list tiles
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black, // Solid black background for the list tiles container
+              borderRadius: BorderRadius.circular(12.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black54,
+                  blurRadius: 10.0,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                _buildListTile(CupertinoIcons.bag_fill, 'My Orders', () {
+                  // Navigate to My Orders page
+                }),
+                _buildListTile(CupertinoIcons.person_fill, 'Personal Info', () {
+                  _showPersonalInfoDialog(context); // Show personal info dialog
+                }),
+                _buildListTile(CupertinoIcons.question_circle_fill, 'FAQs', () {
+                  // Navigate to FAQs page
+                }),
+                _buildListTile(CupertinoIcons.money_dollar_circle, 'Wallet', () {
+                  // Navigate to Wallet page
+                }),
+                _buildListTile(CupertinoIcons.arrow_right_circle_fill, 'Logout', () {
+                  FirebaseAuth.instance.signOut(); // Sign out current user
+                  // Navigate to Login page
+                }),
+              ],
+            ),
+          ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  // Function to create list tiles
-  ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      title: Text(title),
-      leading: Icon(icon),
-      onTap: onTap,
-    );
-  }
-
+// Function to create list tiles with border
+ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
+  return ListTile(
+    title: Text(
+      title,
+      style: TextStyle(color: Colors.white),
+    ),
+    leading: Icon(icon, color: Colors.white),
+    onTap: onTap,
+    tileColor: Colors.black, // Black background for list tiles
+    shape: RoundedRectangleBorder(
+      side: BorderSide(color: Colors.white24, width: 1), // Border color and width
+      borderRadius: BorderRadius.circular(12.0),
+    ),
+    contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+  );
+}
   // Function to show personal info dialog
   Future<void> _showPersonalInfoDialog(BuildContext context) async {
     final _formKey = GlobalKey<FormState>();
