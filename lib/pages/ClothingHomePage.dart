@@ -176,6 +176,33 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final ImagePicker _picker = ImagePicker();
   File? _image;
+  User? _user;
+  String? _userName;
+  String? _userPhotoUrl;
+
+  final List<String> _section1Images = [
+    'assets/images/naruto.jpg',
+    'assets/images/sanemi.jpg',
+    'assets/images/satan.jpg',
+    'assets/images/zoro.jpg',
+  ];
+
+  final List<String> _section2Images = [
+    'assets/images/saree.jpg',
+    'assets/images/kurta.jpg',
+    'assets/images/suit.jpg',
+    'assets/images/lehenga.jpg',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _user = FirebaseAuth.instance.currentUser;
+    if (_user != null) {
+      _userName = _user!.displayName;
+      _userPhotoUrl = _user!.photoURL;
+    }
+  }
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -192,13 +219,12 @@ class _HomePageState extends State<HomePage> {
     if (_image == null) return;
 
     try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
+      if (_user == null) {
         print('User not logged in');
         return;
       }
 
-      String uid = user.uid;
+      String uid = _user!.uid;
       String uniquePostId =
           FirebaseFirestore.instance.collection('posts').doc().id;
       String filePath = 'posts/$uid/$uniquePostId.png';
@@ -227,34 +253,153 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
+        backgroundColor: Colors.black,
         title: Text('Home'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () {
+              // Navigate to cart screen
+            },
+          ),
+        ],
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            if (_image != null)
-              Image.file(_image!)
-            else
-              Text('No image selected.'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: Text('Pick Image'),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  _userPhotoUrl != null
+                      ? CircleAvatar(
+                          backgroundImage: NetworkImage(_userPhotoUrl!),
+                          radius: 30,
+                        )
+                      : CircleAvatar(
+                          child: Icon(Icons.person),
+                          radius: 30,
+                        ),
+                  SizedBox(width: 16),
+                  Text(
+                    _userName ?? 'User',
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _uploadImage,
-              child: Text('Upload Image'),
-            ),
+            _imageBanner(),
+            _sectionBanner('Anime and Vectors Arts'),
+            _gridSection(_section1Images),
+            _sectionBanner2('Traditionals'),
+            _gridSection(_section2Images),
           ],
         ),
       ),
     );
   }
-}
 
+  Widget _imageBanner() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Container(
+        height: 150,
+        width: 300,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/banner.png'), 
+            // Replace with your banner image
+            fit: BoxFit.contain,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionBanner(String title) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          SizedBox(height: 10),
+          Container(
+            height: 100,
+            width:300,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/anime.jpeg'), // Replace with your section banner image
+                fit: BoxFit.cover,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+Widget _sectionBanner2(String title) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          SizedBox(height: 10),
+          Container(
+            height: 100,
+            width:300,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/tradition.jpeg'), // Replace with your section banner image
+                fit: BoxFit.cover,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _gridSection(List<String> images) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemCount: images.length,
+        itemBuilder: (context, index) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[850],
+              borderRadius: BorderRadius.circular(10),
+              image: DecorationImage(
+                image: AssetImage(images[index]),
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 // Stateful widget for user profile screen
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
