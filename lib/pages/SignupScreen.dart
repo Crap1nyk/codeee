@@ -10,8 +10,6 @@ class SignupScreen extends StatelessWidget {
   final TextEditingController _genderController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController =
-      TextEditingController(); // Added for Name
   final TextEditingController _dobController =
       TextEditingController(); // Added for Date of Birth
 
