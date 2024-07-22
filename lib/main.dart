@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:part3/pages/SignupScreen.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:part3/pages/ClothingHomePage.dart';
@@ -35,7 +36,7 @@ class AuthGate extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
           if (user == null) {
-            return LoginScreen();
+            return SignupScreen(); // Navigate to SignupScreen when starting the app for the first time
           } else {
             return ClothingHomePage(); // Navigate to ClothingHomePage
           }
@@ -169,12 +170,12 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                SizedBox(height: 100),
+                SizedBox(height: 50),
                 Image.asset(
                   'assets/images/logo.jpg', // Replace with your image asset path
                   height: 150,
                 ),
-                SizedBox(height: 120),
+                SizedBox(height: 30),
                 Text(
                   'Log In',
                   textAlign: TextAlign.center,

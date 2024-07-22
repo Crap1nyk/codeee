@@ -1,66 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// DateOfBirthField Widget
-class DateOfBirthField extends StatefulWidget {
-  @override
-  _DateOfBirthFieldState createState() => _DateOfBirthFieldState();
-}
-
-class _DateOfBirthFieldState extends State<DateOfBirthField> {
-  final TextEditingController _dobController = TextEditingController();
-  DateTime? _selectedDate;
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime initialDate = DateTime.now();
-    final DateTime firstDate = DateTime(1900);
-    final DateTime lastDate = DateTime.now();
-
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
-    );
-
-    if (pickedDate != null && pickedDate != _selectedDate) {
-      setState(() {
-        _selectedDate = pickedDate;
-        _dobController.text = '${pickedDate.day}/${pickedDate.month}/${pickedDate.year}';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: _dobController,
-      decoration: InputDecoration(
-        labelText: 'Date of Birth',
-        labelStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
-        filled: true,
-        fillColor: Color.fromARGB(255, 246, 245, 245),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        suffixIcon: IconButton(
-          icon: Icon(Icons.calendar_today),
-          onPressed: () => _selectDate(context),
-        ),
-      ),
-      readOnly: true,
-      style: TextStyle(color: Colors.black), // Adjust color as needed
-    );
-  }
-}
-
-// SignupScreen Widget
 class SignupScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _dateofbirth = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController(); // Added for Name
-  final TextEditingController _dobController = TextEditingController(); // Added for Date of Birth
+  final TextEditingController _dobController =
+      TextEditingController(); // Added for Date of Birth
 
   Future<void> _signup() async {
     try {
@@ -69,7 +20,25 @@ class SignupScreen extends StatelessWidget {
         email: _emailController.text,
         password: _passwordController.text,
       );
-      print('User signed up: ${userCredential.user!.uid}');
+      String uid = FirebaseAuth.instance.currentUser!.uid;
+
+      print('User signed up: $uid');
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'name': _nameController.text.trim(),
+        'phone': _phoneNumberController.text.trim(),
+        'dob': _dateofbirth.text.trim(),
+        'email':
+            _emailController.text.trim(), // Assuming you collect this somewhere
+        'gender': _genderController.text.trim(),
+      }).then((_) {
+        print("User information added to Firestore successfully");
+        // Navigate to next screen or show success message
+      }).catchError((error) {
+        print("Failed to add user: $error");
+        // Handle errors, e.g., show an error message
+      });
+
       // User is signed up
       // Navigate to another screen, or do something else
     } on FirebaseAuthException catch (e) {
@@ -86,110 +55,67 @@ class SignupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          Container(
-            color: Colors.black,
-            padding: const EdgeInsets.all(20.0),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  SizedBox(height: 50),
-                  Image.asset(
-                    'assets/images/logo.jpg', // Replace with your image asset path
-                    height: 100,
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'Sign Up',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontFamily: 'Montserrat', // Change to your preferred font
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Enter your details below to sign up',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontFamily: 'Montserrat', // Change to your preferred font
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
-                      filled: true,
-                      fillColor: Color.fromARGB(255, 246, 245, 245),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  SizedBox(height: 15),
-                  TextField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
-                      filled: true,
-                      fillColor: Color.fromARGB(255, 246, 245, 245),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    obscureText: true,
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  SizedBox(height: 15),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      labelStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
-                      filled: true,
-                      fillColor: Color.fromARGB(255, 246, 245, 245),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  SizedBox(height: 15),
-                  DateOfBirthField(), // Add the DateOfBirthField widget here
-                  SizedBox(height: 30),
-                  ElevatedButton(
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Color.fromARGB(255, 180, 83, 180),
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                      ),
-                    ),
-                    onPressed: () => _signup(),
-                  ),
-                ],
+      appBar: AppBar(
+        title: Text('Sign Up'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                ),
               ),
-            ),
+              SizedBox(height: 20),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                ),
+              ),
+
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                ),
+              ),
+
+              TextField(
+                controller: _genderController,
+                decoration: InputDecoration(
+                  labelText: 'Gender',
+                ),
+              ),
+
+              TextField(
+                controller: _phoneNumberController,
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                ),
+              ),
+
+              TextField(
+                controller: _dateofbirth,
+                decoration: InputDecoration(
+                  labelText: 'DOB',
+                ),
+              ),
+              // Add a signup button that calls the _signup method when pressed
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _signup,
+                child: Text('Sign Up'),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
