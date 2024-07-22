@@ -306,148 +306,168 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  return Container(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Color.fromARGB(255, 0, 0, 0), Color.fromARGB(255, 50, 50, 50)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(255, 0, 0, 0),
+            Color.fromARGB(255, 50, 50, 50)
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-    ),
-    child: Scaffold(
-      backgroundColor: Colors.transparent, // Make Scaffold background transparent
-      appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(color: Colors.white)), // White text for app bar title
-        backgroundColor: Colors.transparent,
-        elevation: 0, // No shadow
-        iconTheme: IconThemeData(color: Colors.white), // White icons
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // Rounded UI with user image and information
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color.fromRGBO(208, 108, 236, 1), Color.fromARGB(255, 89, 0, 255)], // Gradient colors
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      child: Scaffold(
+        backgroundColor:
+            Colors.transparent, // Make Scaffold background transparent
+        appBar: AppBar(
+          title: const Text('Profile',
+              style: TextStyle(
+                  color: Colors.white)), // White text for app bar title
+          backgroundColor: Colors.transparent,
+          elevation: 0, // No shadow
+          iconTheme: IconThemeData(color: Colors.white), // White icons
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            // Rounded UI with user image and information
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color.fromRGBO(208, 108, 236, 1),
+                    Color.fromARGB(255, 89, 0, 255)
+                  ], // Gradient colors
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black54,
+                    blurRadius: 10.0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              borderRadius: BorderRadius.circular(12.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black54,
-                  blurRadius: 10.0,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey[800], // Darker grey for the avatar background
-                    backgroundImage: _image != null
-                        ? FileImage(_image!) as ImageProvider
-                        : (userInfo['photoUrl'] != null
-                            ? NetworkImage(userInfo['photoUrl']!)
-                            : null) as ImageProvider?,
-                    child: _image == null && userInfo['photoUrl'] == null
-                        ? Icon(Icons.camera_alt, color: Colors.white)
-                        : null,
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors
+                          .grey[800], // Darker grey for the avatar background
+                      backgroundImage: _image != null
+                          ? FileImage(_image!) as ImageProvider
+                          : (userInfo['photoUrl'] != null
+                              ? NetworkImage(userInfo['photoUrl']!)
+                              : null) as ImageProvider?,
+                      child: _image == null && userInfo['photoUrl'] == null
+                          ? Icon(Icons.camera_alt, color: Colors.white)
+                          : null,
+                    ),
                   ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  userInfo['name'] ?? 'Name not available',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  SizedBox(height: 10),
+                  Text(
+                    userInfo['name'] ?? 'Name not available',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                Text(
-                  'Gender: ${userInfo['gender'] ?? 'Not specified'}',
-                  style: TextStyle(color: Colors.white70), // Slightly lighter text color
-                ),
-                Text(
-                  'Phone: ${userInfo['phone'] ?? 'Not specified'}',
-                  style: TextStyle(color: Colors.white70),
-                ),
-                Text(
-                  'Wallet: \$${userInfo['walletAmount'] ?? 0}',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ],
+                  Text(
+                    'Gender: ${userInfo['gender'] ?? 'Not specified'}',
+                    style: TextStyle(
+                        color: Colors.white70), // Slightly lighter text color
+                  ),
+                  Text(
+                    'Phone: ${userInfo['phone'] ?? 'Not specified'}',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  Text(
+                    'Wallet: \$${userInfo['walletAmount'] ?? 0}',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 20),
-          // Container for list tiles
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black, // Solid black background for the list tiles container
-              borderRadius: BorderRadius.circular(12.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black54,
-                  blurRadius: 10.0,
-                  offset: Offset(0, 2),
-                ),
-              ],
+            SizedBox(height: 20),
+            // Container for list tiles
+            Container(
+              decoration: BoxDecoration(
+                color: Colors
+                    .black, // Solid black background for the list tiles container
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black54,
+                    blurRadius: 10.0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildListTile(CupertinoIcons.bag_fill, 'My Orders', () {
+                    // Navigate to My Orders page
+                  }),
+                  _buildListTile(CupertinoIcons.person_fill, 'Personal Info',
+                      () {
+                    _showPersonalInfoDialog(
+                        context); // Show personal info dialog
+                  }),
+                  _buildListTile(CupertinoIcons.question_circle_fill, 'FAQs',
+                      () {
+                    // Navigate to FAQs page
+                  }),
+                  _buildListTile(CupertinoIcons.money_dollar_circle, 'Wallet',
+                      () {
+                    // Navigate to Wallet page
+                  }),
+                  _buildListTile(
+                      CupertinoIcons.arrow_right_circle_fill, 'Logout', () {
+                    FirebaseAuth.instance.signOut(); // Sign out current user
+                    // Navigate to Login page
+                  }),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                _buildListTile(CupertinoIcons.bag_fill, 'My Orders', () {
-                  // Navigate to My Orders page
-                }),
-                _buildListTile(CupertinoIcons.person_fill, 'Personal Info', () {
-                  _showPersonalInfoDialog(context); // Show personal info dialog
-                }),
-                _buildListTile(CupertinoIcons.question_circle_fill, 'FAQs', () {
-                  // Navigate to FAQs page
-                }),
-                _buildListTile(CupertinoIcons.money_dollar_circle, 'Wallet', () {
-                  // Navigate to Wallet page
-                }),
-                _buildListTile(CupertinoIcons.arrow_right_circle_fill, 'Logout', () {
-                  FirebaseAuth.instance.signOut(); // Sign out current user
-                  // Navigate to Login page
-                }),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
 // Function to create list tiles with border
-ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
-  return ListTile(
-    title: Text(
-      title,
-      style: TextStyle(color: Colors.white),
-    ),
-    leading: Icon(icon, color: Colors.white),
-    onTap: onTap,
-    tileColor: Colors.black, // Black background for list tiles
-    shape: RoundedRectangleBorder(
-      side: BorderSide(color: Colors.white24, width: 1), // Border color and width
-      borderRadius: BorderRadius.circular(12.0),
-    ),
-    contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-  );
-}
+  ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(color: Colors.white),
+      ),
+      leading: Icon(icon, color: Colors.white),
+      onTap: onTap,
+      tileColor: Colors.black, // Black background for list tiles
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+            color: Colors.white24, width: 1), // Border color and width
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    );
+  }
+
   // Function to show personal info dialog
   Future<void> _showPersonalInfoDialog(BuildContext context) async {
     final _formKey = GlobalKey<FormState>();
-    TextEditingController dobController = TextEditingController(text: userInfo['dob']);
+    TextEditingController dobController =
+        TextEditingController(text: userInfo['dob']);
 
     showDialog(
       context: context,
@@ -476,7 +496,8 @@ ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
                   _buildTextFormField('Address', 'address'),
                   TextFormField(
                     controller: dobController,
-                    decoration: const InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)'),
+                    decoration: const InputDecoration(
+                        labelText: 'Date of Birth (YYYY-MM-DD)'),
                     onChanged: (value) => userInfo['dob'] = value,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -529,7 +550,9 @@ ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
         if (value == null || value.isEmpty) {
           return 'Please enter your $label';
         }
-        if (isEmail && (!value.contains('@') || !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value))) {
+        if (isEmail &&
+            (!value.contains('@') ||
+                !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value))) {
           return 'Please enter a valid email address';
         }
         return null;
@@ -537,6 +560,7 @@ ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
     );
   }
 }
+
 class CartScreen extends StatelessWidget {
   final List<Map<String, dynamic>> cart;
   final List<Uint8List> products = [];
@@ -621,13 +645,13 @@ class CartScreen extends StatelessWidget {
   }
 }
 
-
 final GlobalKey<_ImageAreaState> _imageAreaKey = GlobalKey();
 
 class ProfileScreen extends StatefulWidget {
   final Function(Uint8List) addImageToProducts;
 
-  const ProfileScreen({Key? key, required this.addImageToProducts}) : super(key: key);
+  const ProfileScreen({Key? key, required this.addImageToProducts})
+      : super(key: key);
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -658,7 +682,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 DropdownButton<String>(
                   value: _selectedModel,
                   dropdownColor: Colors.grey[850],
-                  items: <String>['Model 1', 'Model 2', 'Model 3'].map((String value) {
+                  items: <String>['Model 1', 'Model 2', 'Model 3']
+                      .map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value, style: TextStyle(color: Colors.white)),
@@ -671,7 +696,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
                 const SizedBox(height: 20.0),
-                _selectedModel == 'Model 1' ? _model1UI() : (_selectedModel == 'Model 2' ? _model2UI() : _model3UI()),
+                _selectedModel == 'Model 1'
+                    ? _model1UI()
+                    : (_selectedModel == 'Model 2' ? _model2UI() : _model3UI()),
               ],
             ),
           ),
@@ -695,7 +722,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 12.0),
           ),
-          onPressed: () {},
+          onPressed: () async {},
         ),
         const SizedBox(height: 20.0),
         _ImageArea(key: _imageAreaKey),
@@ -743,7 +770,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-   Widget _model2UI() {
+  Widget _model2UI() {
     return Column(
       children: <Widget>[
         PromptInput(),
@@ -806,15 +833,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-   Widget _model3UI() {
+  Widget _model3UI() {
     return Column(
       children: <Widget>[
         PromptInput(),
-          ImageInput(
-        onImagePicked: (imageData) {
-          _imageAreaKey.currentState?.updateImageData(imageData);
-        },
-      ),
+        ImageInput(
+          onImagePicked: (imageData) {
+            _imageAreaKey.currentState?.updateImageData(imageData);
+          },
+        ),
         ElevatedButton.icon(
           icon: Icon(Icons.auto_awesome_sharp, color: Colors.white),
           label: Text('Generate', style: TextStyle(color: Colors.white)),
@@ -962,7 +989,8 @@ class _PromptInputState extends State<PromptInput> {
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 1, 0, 0),
         borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Color.fromARGB(255, 176, 167, 175), width: 1.0),
+        border:
+            Border.all(color: Color.fromARGB(255, 176, 167, 175), width: 1.0),
       ),
       child: TextField(
         controller: controller,
@@ -971,13 +999,13 @@ class _PromptInputState extends State<PromptInput> {
           hintText: hintText,
           hintStyle: const TextStyle(color: Colors.white54),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         ),
       ),
     );
   }
 }
-
 
 class _ImageArea extends StatefulWidget {
   const _ImageArea({Key? key}) : super(key: key);
@@ -1003,12 +1031,17 @@ class _ImageAreaState extends State<_ImageArea> {
       decoration: BoxDecoration(
         color: Color.fromARGB(255, 10, 0, 0),
         borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Color.fromARGB(255, 154, 139, 156), width: 1.0),
+        border:
+            Border.all(color: Color.fromARGB(255, 154, 139, 156), width: 1.0),
       ),
       child: imageData != null
           ? Image.memory(imageData!)
           : const Center(
-              child: Text('Output Image', style: TextStyle(fontSize: 20.0),selectionColor: Color.fromARGB(255, 255, 255, 255),)),
+              child: Text(
+              'Output Image',
+              style: TextStyle(fontSize: 20.0),
+              selectionColor: Color.fromARGB(255, 255, 255, 255),
+            )),
     );
   }
 }
@@ -1058,7 +1091,8 @@ class _PromptAreaState extends State<_PromptArea> {
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 1, 0, 0),
         borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Color.fromARGB(255, 176, 167, 175), width: 1.0),
+        border:
+            Border.all(color: Color.fromARGB(255, 176, 167, 175), width: 1.0),
       ),
       child: TextField(
         controller: controller,
@@ -1067,14 +1101,13 @@ class _PromptAreaState extends State<_PromptArea> {
           hintText: hintText,
           hintStyle: const TextStyle(color: Colors.white54),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         ),
       ),
     );
   }
 }
-
-
 
 Future<void> _generateImageFromPrompt(String prompt) async {
   const apiUrl =
