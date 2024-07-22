@@ -621,64 +621,363 @@ class CartScreen extends StatelessWidget {
   }
 }
 
+
 final GlobalKey<_ImageAreaState> _imageAreaKey = GlobalKey();
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   final Function(Uint8List) addImageToProducts;
 
-  const ProfileScreen({Key? key, required this.addImageToProducts})
-      : super(key: key);
+  const ProfileScreen({Key? key, required this.addImageToProducts}) : super(key: key);
+
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _selectedModel = 'Model 1'; // Default selected model
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        backgroundColor: Colors.black,
+      ),
+      backgroundColor: Colors.black,
       body: SingleChildScrollView(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              _PromptArea(),
-              _ImageArea(key: _imageAreaKey),
-              const SizedBox(height: 20.0),
-              _FilterSliders(),
-              const SizedBox(height: 20.0),
-              ElevatedButton(
-                onPressed: () async {
-                  final imageData = _imageAreaKey.currentState?.imageData;
-                  if (imageData != null) {
-                    globalImageData = imageData;
-                    addImageToProducts(imageData);
-                    final newProduct = {
-                      'name': 'New Product',
-                      'price': 0.0,
-                      'image': imageData,
-                      'category': 'New Category',
-                    };
-                    final user = FirebaseAuth.instance.currentUser;
-                    if (user != null) {
-                      final userId = user.uid;
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userId)
-                          .collection('products')
-                          .add(newProduct);
-                    }
-                  }
-                },
-                child: const Text('Add Image to Products'),
-              ),
-              const SizedBox(height: 20.0),
-              globalImageData != null
-                  ? Image.memory(globalImageData!, width: 200, height: 200)
-                  : const SizedBox.shrink(),
-            ],
+          child: Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 33, 32, 32),
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                DropdownButton<String>(
+                  value: _selectedModel,
+                  dropdownColor: Colors.grey[850],
+                  items: <String>['Model 1', 'Model 2', 'Model 3'].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: TextStyle(color: Colors.white)),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedModel = newValue!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20.0),
+                _selectedModel == 'Model 1' ? _model1UI() : (_selectedModel == 'Model 2' ? _model2UI() : _model3UI()),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _model1UI() {
+    return Column(
+      children: <Widget>[
+        _PromptArea(),
+        ElevatedButton.icon(
+          icon: Icon(Icons.auto_awesome_sharp, color: Colors.white),
+          label: Text('Generate', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromARGB(255, 213, 146, 39),
+            minimumSize: Size(150, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+          onPressed: () {},
+        ),
+        const SizedBox(height: 20.0),
+        _ImageArea(key: _imageAreaKey),
+        const SizedBox(height: 20.0),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: const Color.fromARGB(255, 231, 231, 231),
+            backgroundColor: Color.fromARGB(255, 249, 178, 63),
+            minimumSize: Size(150, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+          onPressed: () async {
+            final imageData = _imageAreaKey.currentState?.imageData;
+            if (imageData != null) {
+              globalImageData = imageData;
+              widget.addImageToProducts(imageData);
+              final newProduct = {
+                'name': 'New Product',
+                'price': 0.0,
+                'image': imageData,
+                'category': 'New Category',
+              };
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                final userId = user.uid;
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userId)
+                    .collection('products')
+                    .add(newProduct);
+              }
+            }
+          },
+          child: const Text('Add to cart'),
+        ),
+        const SizedBox(height: 20.0),
+        globalImageData != null
+            ? Image.memory(globalImageData!, width: 200, height: 200)
+            : const SizedBox.shrink(),
+        const SizedBox(height: 25.0),
+      ],
+    );
+  }
+
+   Widget _model2UI() {
+    return Column(
+      children: <Widget>[
+        PromptInput(),
+        ElevatedButton.icon(
+          icon: Icon(Icons.auto_awesome_sharp, color: Colors.white),
+          label: Text('Generate', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromARGB(255, 213, 146, 39),
+            minimumSize: Size(150, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+          onPressed: () {},
+        ),
+        const SizedBox(height: 20.0),
+        _ImageArea(key: _imageAreaKey),
+        const SizedBox(height: 20.0),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: const Color.fromARGB(255, 231, 231, 231),
+            backgroundColor: Color.fromARGB(255, 249, 178, 63),
+            minimumSize: Size(150, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+          onPressed: () async {
+            final imageData = _imageAreaKey.currentState?.imageData;
+            if (imageData != null) {
+              globalImageData = imageData;
+              widget.addImageToProducts(imageData);
+              final newProduct = {
+                'name': 'New Product',
+                'price': 0.0,
+                'image': imageData,
+                'category': 'New Category',
+              };
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                final userId = user.uid;
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userId)
+                    .collection('products')
+                    .add(newProduct);
+              }
+            }
+          },
+          child: const Text('Add to cart'),
+        ),
+        const SizedBox(height: 20.0),
+        globalImageData != null
+            ? Image.memory(globalImageData!, width: 200, height: 200)
+            : const SizedBox.shrink(),
+        const SizedBox(height: 25.0),
+      ],
+    );
+  }
+
+   Widget _model3UI() {
+    return Column(
+      children: <Widget>[
+        PromptInput(),
+          ImageInput(
+        onImagePicked: (imageData) {
+          _imageAreaKey.currentState?.updateImageData(imageData);
+        },
+      ),
+        ElevatedButton.icon(
+          icon: Icon(Icons.auto_awesome_sharp, color: Colors.white),
+          label: Text('Generate', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromARGB(255, 213, 146, 39),
+            minimumSize: Size(150, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+          onPressed: () {},
+        ),
+        const SizedBox(height: 20.0),
+        _ImageArea(key: _imageAreaKey),
+        const SizedBox(height: 20.0),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: const Color.fromARGB(255, 231, 231, 231),
+            backgroundColor: Color.fromARGB(255, 249, 178, 63),
+            minimumSize: Size(150, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+          onPressed: () async {
+            final imageData = _imageAreaKey.currentState?.imageData;
+            if (imageData != null) {
+              globalImageData = imageData;
+              widget.addImageToProducts(imageData);
+              final newProduct = {
+                'name': 'New Product',
+                'price': 0.0,
+                'image': imageData,
+                'category': 'New Category',
+              };
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                final userId = user.uid;
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userId)
+                    .collection('products')
+                    .add(newProduct);
+              }
+            }
+          },
+          child: const Text('Add to cart'),
+        ),
+        const SizedBox(height: 20.0),
+        globalImageData != null
+            ? Image.memory(globalImageData!, width: 200, height: 200)
+            : const SizedBox.shrink(),
+        const SizedBox(height: 25.0),
+      ],
+    );
+  }
 }
+
+class ImageInput extends StatefulWidget {
+  final Function(Uint8List) onImagePicked;
+
+  const ImageInput({Key? key, required this.onImagePicked}) : super(key: key);
+
+  @override
+  _ImageInputState createState() => _ImageInputState();
+}
+
+class _ImageInputState extends State<ImageInput> {
+  Uint8List? _imageData;
+
+  Future<void> _pickImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      final Uint8List imageData = await image.readAsBytes();
+      setState(() {
+        _imageData = imageData;
+      });
+      widget.onImagePicked(imageData);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        ElevatedButton.icon(
+          icon: Icon(Icons.image, color: Colors.white),
+          label: Text('Pick Image', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromARGB(255, 213, 146, 39),
+            minimumSize: Size(150, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+          onPressed: _pickImage,
+        ),
+        const SizedBox(height: 20.0),
+        _imageData != null
+            ? Image.memory(_imageData!, width: 200, height: 200)
+            : Text(
+                'No image selected',
+                style: TextStyle(color: Colors.white),
+              ),
+      ],
+    );
+  }
+}
+
+class PromptInput extends StatefulWidget {
+  @override
+  _PromptInputState createState() => _PromptInputState();
+}
+
+class _PromptInputState extends State<PromptInput> {
+  final TextEditingController _promptController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          _buildInputField(
+            controller: _promptController,
+            hintText: 'Enter prompt',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return Container(
+      width: 300,
+      height: 40,
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 1, 0, 0),
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Color.fromARGB(255, 176, 167, 175), width: 1.0),
+      ),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: const TextStyle(color: Colors.white54),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        ),
+      ),
+    );
+  }
+}
+
 
 class _ImageArea extends StatefulWidget {
   const _ImageArea({Key? key}) : super(key: key);
@@ -699,85 +998,17 @@ class _ImageAreaState extends State<_ImageArea> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 200,
-      height: 200,
+      width: 300,
+      height: 300,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: Color.fromARGB(255, 10, 0, 0),
         borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: Color.fromARGB(255, 154, 139, 156), width: 1.0),
       ),
       child: imageData != null
           ? Image.memory(imageData!)
           : const Center(
-              child: Text('Output Image', style: TextStyle(fontSize: 20.0))),
-    );
-  }
-}
-
-class _FilterSliders extends StatefulWidget {
-  @override
-  _FilterSlidersState createState() => _FilterSlidersState();
-}
-
-class _FilterSlidersState extends State<_FilterSliders> {
-  double _sliderValue1 = 0;
-  double _sliderValue2 = 0;
-  double _sliderValue3 = 0;
-  double _sliderValue4 = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        const Text('Filters'),
-        Slider(
-          value: _sliderValue1,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue1 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 1',
-        ),
-        Slider(
-          value: _sliderValue2,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue2 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 2',
-        ),
-        Slider(
-          value: _sliderValue3,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue3 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 3',
-        ),
-        Slider(
-          value: _sliderValue4,
-          onChanged: (newValue) {
-            setState(() {
-              _sliderValue4 = newValue;
-            });
-          },
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: 'Filter 4',
-        ),
-      ],
+              child: Text('Output Image', style: TextStyle(fontSize: 20.0),selectionColor: Color.fromARGB(255, 255, 255, 255),)),
     );
   }
 }
@@ -788,50 +1019,86 @@ class _PromptArea extends StatefulWidget {
 }
 
 class _PromptAreaState extends State<_PromptArea> {
-  final TextEditingController _textFieldController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _dressTypeController = TextEditingController();
+  final TextEditingController _designController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20.0),
-      child: TextField(
-        controller: _textFieldController,
-        decoration: const InputDecoration(
-          hintText: 'Enter prompt text...',
-          prefixIcon: Icon(Icons.search),
-          suffixIcon: Icon(Icons.camera_alt),
-        ),
-        onSubmitted: (value) {
-          _generateImageFromPrompt(value);
-        },
+      child: Column(
+        children: [
+          _buildInputField(
+            controller: _colorController,
+            hintText: 'Color',
+          ),
+          const SizedBox(height: 15.0),
+          _buildInputField(
+            controller: _dressTypeController,
+            hintText: 'Dress Type',
+          ),
+          const SizedBox(height: 15.0),
+          _buildInputField(
+            controller: _designController,
+            hintText: 'Design',
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _generateImageFromPrompt(String prompt) async {
-    const apiUrl =
-        "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
-    const token = "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";
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return Container(
+      width: 300,
+      height: 40,
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 1, 0, 0),
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Color.fromARGB(255, 176, 167, 175), width: 1.0),
+      ),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: const TextStyle(color: Colors.white54),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        ),
+      ),
+    );
+  }
+}
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode({"inputs": prompt}),
-      );
 
-      if (response.statusCode == 200) {
-        final Uint8List imageData = response.bodyBytes;
-        _imageAreaKey.currentState?.updateImageData(imageData);
-      } else {
-        print("Failed to generate image: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Exception occurred: $e");
+
+Future<void> _generateImageFromPrompt(String prompt) async {
+  const apiUrl =
+      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+  const token = "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";
+
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({"inputs": prompt}),
+    );
+
+    if (response.statusCode == 200) {
+      final Uint8List imageData = response.bodyBytes;
+      _imageAreaKey.currentState?.updateImageData(imageData);
+    } else {
+      print("Failed to generate image: ${response.statusCode}");
     }
+  } catch (e) {
+    print("Exception occurred: $e");
   }
 }
 
