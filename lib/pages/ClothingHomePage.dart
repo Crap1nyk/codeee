@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:part3/main.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -19,6 +20,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart'; // For picking images
 import 'dart:io'; // For File handling
 import 'package:cupertino_icons/cupertino_icons.dart';
+import 'package:path/path.dart' as path;
 
 // Entry point of the application
 void main() async {
@@ -1281,206 +1283,417 @@ Future<void> _generateImageFromPrompt(String prompt) async {
 }
 
 class CommunityPage extends StatefulWidget {
+  const CommunityPage({Key? key}) : super(key: key);
+
   @override
   _CommunityPageState createState() => _CommunityPageState();
 }
 
 class _CommunityPageState extends State<CommunityPage> {
-  final TextEditingController _postController = TextEditingController();
+  final TextEditingController _captionController = TextEditingController();
+  File? _selectedImage;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _uploadPost(BuildContext context) async {
+    if (_selectedImage == null || _captionController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Image and caption are required')),
+      );
+      return;
+    }
+
+    String fileName = path.basename(_selectedImage!.path);
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final postId = FirebaseFirestore.instance.collection('posts').doc().id;
+      final storageRef = FirebaseStorage.instance.ref().child('posts/$uid/$postId/$fileName');
+
+      final uploadTask = storageRef.putFile(_selectedImage!);
+
+      await uploadTask.whenComplete(() => null);
+
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      await FirebaseFirestore.instance.collection('posts').doc(postId).set({
+        'uid': uid,
+        'downloadUrl': downloadUrl,
+        'caption': _captionController.text,
+        'likes': 0,
+        'dislikes': 0,
+        'comments': [],
+        'likedBy': [],
+        'dislikedBy': [],
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      setState(() {
+        _selectedImage = null;
+        _captionController.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Post uploaded successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading post: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Community')),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: const Text('Community'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          _buildPostInput(),
-          Expanded(child: _buildPostList()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostInput() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _postController,
-              decoration: const InputDecoration(
-                hintText: 'What\'s on your mind?',
-              ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _captionController,
+                  decoration: InputDecoration(
+                    labelText: 'What\'s on your mind?',
+                    labelStyle: TextStyle(color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.image, color: Colors.white),
+                      onPressed: _pickImage,
+                    ),
+                  ),
+                  maxLines: 3,
+                  style: TextStyle(color: Colors.white),
+                ),
+                SizedBox(height: 10),
+                _selectedImage != null
+                    ? Image.file(
+                        _selectedImage!,
+                        height: 70,
+                        width: 50,
+                        fit: BoxFit.contain,
+                      )
+                    : Container(),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () => _uploadPost(context),
+                  child: Text('Post'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black, backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _createPost,
-          ),
+          Expanded(child: PostsList()),
         ],
       ),
     );
   }
+}
 
-  Future<void> _createPost() async {
-    if (_postController.text.isEmpty) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final newPost = Post(
-        id: '',
-        userId: user.uid,
-        userName: user.displayName ?? 'Anonymous',
-        content: _postController.text,
-        timestamp: DateTime.now(),
-      );
-
-      await FirebaseFirestore.instance
-          .collection('posts')
-          .add(newPost.toFirestore());
-      _postController.clear();
-    }
-  }
-
-  Widget _buildPostList() {
+class PostsList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('posts')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
+      stream: FirebaseFirestore.instance.collection('posts').snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator());
         }
 
-        final posts =
-            snapshot.data!.docs.map((doc) => Post.fromFirestore(doc)).toList();
+        List<Post> posts = snapshot.data!.docs
+            .map((doc) => Post.fromDocumentSnapshot(doc))
+            .toList();
 
         return ListView.builder(
           itemCount: posts.length,
           itemBuilder: (context, index) {
-            return _buildPostItem(posts[index]);
+            return PostItem(post: posts[index]);
           },
         );
       },
     );
   }
+}
 
-  Widget _buildPostItem(Post post) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(post.userName, style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 4.0),
-            Text(post.content),
-            SizedBox(height: 8.0),
-            _buildCommentSection(post),
-          ],
-        ),
-      ),
-    );
-  }
+class PostItem extends StatefulWidget {
+  final Post post;
 
-  Widget _buildCommentSection(Post post) {
-    return Column(
-      children: [
-        _buildCommentInput(post),
-        _buildCommentList(post),
-      ],
-    );
-  }
+  PostItem({required this.post});
 
-  Widget _buildCommentInput(Post post) {
-    final TextEditingController _commentController = TextEditingController();
+  @override
+  _PostItemState createState() => _PostItemState();
+}
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _commentController,
-              decoration: const InputDecoration(
-                hintText: 'Add a comment...',
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: () => _addComment(post, _commentController),
-          ),
-        ],
-      ),
-    );
-  }
+class _PostItemState extends State<PostItem> {
+  final String userId = FirebaseAuth.instance.currentUser!.uid;
+  bool _showComments = false;
+  final TextEditingController _commentController = TextEditingController();
 
-  Future<void> _addComment(Post post, TextEditingController controller) async {
-    if (controller.text.isEmpty) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final newComment = Comment(
-        id: '',
-        userId: user.uid,
-        userName: user.displayName ?? 'Anonymous',
-        content: controller.text,
-        timestamp: DateTime.now(),
-      );
-
-      await FirebaseFirestore.instance
+  void _likePost() {
+    if (!widget.post.likedBy.contains(userId)) {
+      FirebaseFirestore.instance
           .collection('posts')
-          .doc(post.id)
-          .collection('comments')
-          .add(newComment.toFirestore());
-
-      controller.clear();
+          .doc(widget.post.id)
+          .update({
+        'likes': widget.post.likes + 1,
+        'likedBy': FieldValue.arrayUnion([userId]),
+        'dislikedBy': FieldValue.arrayRemove([userId]),
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You have already liked this post')),
+      );
     }
   }
 
-  Widget _buildCommentList(Post post) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
+  void _dislikePost() {
+    if (!widget.post.dislikedBy.contains(userId)) {
+      FirebaseFirestore.instance
           .collection('posts')
-          .doc(post.id)
-          .collection('comments')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final comments = snapshot.data!.docs
-            .map((doc) => Comment.fromFirestore(doc))
-            .toList();
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: comments.length,
-          itemBuilder: (context, index) {
-            return _buildCommentItem(comments[index]);
-          },
-        );
-      },
-    );
+          .doc(widget.post.id)
+          .update({
+        'dislikes': widget.post.dislikes + 1,
+        'dislikedBy': FieldValue.arrayUnion([userId]),
+        'likedBy': FieldValue.arrayRemove([userId]),
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You have already disliked this post')),
+      );
+    }
   }
 
-  Widget _buildCommentItem(Comment comment) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
+  void _toggleComments() {
+    setState(() {
+      _showComments = !_showComments;
+    });
+  }
+
+  void _addComment(String comment) async {
+    if (comment.isEmpty) return;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.post.id)
+          .update({
+        'comments': FieldValue.arrayUnion([
+          {
+            'comment': comment,
+            'userId': user.uid,
+            'userName': user.displayName ?? 'Anonymous',
+          }
+        ]),
+      });
+
+      _commentController.clear();
+    }
+  }
+
+  void _deletePost() async {
+    if (widget.post.uid == userId) {
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.post.id)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Post deleted successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You cannot delete this post')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.black,
+      margin: EdgeInsets.all(10),
+      child: Column(
         children: [
-          CircleAvatar(child: Text(comment.userName[0])),
-          SizedBox(width: 8.0),
-          Expanded(child: Text(comment.content)),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  radius: 20,
+                  child: Icon(Icons.person, color: Colors.white),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.post.userName ?? 'Unknown User',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    widget.post.userEmail ?? 'No Email',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 400,maxWidth: 400), // Limit the height of the image
+            child: Image.network(
+              widget.post.downloadUrl,
+              width: 400,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              widget.post.caption,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                icon: Icon(Icons.thumb_up, color: Colors.white),
+                onPressed: _likePost,
+              ),
+              Text(widget.post.likes.toString(), style: TextStyle(color: Colors.white)),
+              IconButton(
+                icon: Icon(Icons.thumb_down, color: Colors.white),
+                onPressed: _dislikePost,
+              ),
+              Text(widget.post.dislikes.toString(), style: TextStyle(color: Colors.white)),
+              IconButton(
+                icon: Icon(Icons.comment, color: Colors.white),
+                onPressed: _toggleComments,
+              ),
+              Text(widget.post.comments.length.toString(), style: TextStyle(color: Colors.white)),
+            ],
+          ),
+          if (_showComments)
+            Column(
+              children: widget.post.comments.map((comment) {
+                return ListTile(
+                  title: Text(comment['userName'] ?? 'Anonymous', style: TextStyle(color: Colors.white)),
+                  subtitle: Text(comment['comment'] ?? '', style: TextStyle(color: Colors.white70)),
+                );
+              }).toList()
+                ..add(
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: _commentController,
+                      decoration: InputDecoration(
+                        labelText: 'Add a comment',
+                        labelStyle: TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                      ),
+                      style: TextStyle(color: Colors.white),
+                      onSubmitted: _addComment,
+                    ),
+                  ) as ListTile,
+                ),
+            ),
+          if (widget.post.uid == userId)
+            TextButton(
+              onPressed: _deletePost,
+              child: Text('Delete Post', style: TextStyle(color: Colors.red)),
+            ),
         ],
       ),
+    );
+  }
+}
+
+class Post {
+  final String id;
+  final String uid;
+  final String downloadUrl;
+  final String caption;
+  final int likes;
+  final int dislikes;
+  final List<dynamic> comments;
+  final List<dynamic> likedBy;
+  final List<dynamic> dislikedBy;
+  final String? userName; // Added field
+  final String? userEmail; // Added field
+
+  Post({
+    required this.id,
+    required this.uid,
+    required this.downloadUrl,
+    required this.caption,
+    required this.likes,
+    required this.dislikes,
+    required this.comments,
+    required this.likedBy,
+    required this.dislikedBy,
+    this.userName,
+    this.userEmail,
+  });
+
+  factory Post.fromDocumentSnapshot(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+
+    return Post(
+      id: doc.id,
+      uid: data['uid'] as String? ?? '',
+      downloadUrl: data['downloadUrl'] as String? ?? '',
+      caption: data['caption'] as String? ?? '',
+      likes: (data['likes'] as int?) ?? 0,
+      dislikes: (data['dislikes'] as int?) ?? 0,
+      comments: List<dynamic>.from(data['comments'] ?? []),
+      likedBy: List<dynamic>.from(data['likedBy'] ?? []),
+      dislikedBy: List<dynamic>.from(data['dislikedBy'] ?? []),
+      userName: data['userName'] as String?,
+      userEmail: data['userEmail'] as String?,
     );
   }
 }
