@@ -26,14 +26,14 @@ class _ProductPageState extends State<ProductPage> {
       if (product['image'] is List) {
         return Image.memory(
           Uint8List.fromList((product['image'] as List).cast<int>()),
-          width: 200,
-          height: 200,
+          width: 400,
+          height: 400,
         );
       } else if (product['image'] is String) {
         return Image.network(
           product['image'],
-          width: 200,
-          height: 200,
+          width: 400,
+          height: 400,
         );
       } else {
         return const Icon(
@@ -70,7 +70,9 @@ class _ProductPageState extends State<ProductPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(product['name']),
+        backgroundColor: Colors.black,
       ),
+      backgroundColor: Color.fromARGB(255, 8, 0, 0), // Metallic black background
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -82,19 +84,19 @@ class _ProductPageState extends State<ProductPage> {
             const SizedBox(height: 16.0),
             Text(
               product['name'],
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 8.0),
-            Text('\$${product['price']}'),
+            Text('\$${product['price']}', style: const TextStyle(color: Colors.white)),
             const SizedBox(height: 16.0),
             Text(
               'Category: ${product['category']}',
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
             const SizedBox(height: 16.0),
             Text(
               'Description: ${product['description'] ?? 'No description available'}',
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
             const SizedBox(height: 16.0),
             Text(
@@ -107,43 +109,53 @@ class _ProductPageState extends State<ProductPage> {
             const SizedBox(height: 16.0),
             Text(
               'Size:',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             DropdownButton<String>(
+              dropdownColor: Colors.grey[850],
               value: selectedSize,
               onChanged: (String? newSize) {
                 setState(() {
                   selectedSize = newSize!;
                 });
               },
-              items: <String>['S', 'M', 'L', 'XL']
-                  .map<DropdownMenuItem<String>>((String value) {
+              items: <String>['S', 'M', 'L', 'XL'].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value),
+                  child: Text(value, style: TextStyle(color: Colors.white)),
                 );
               }).toList(),
             ),
             const SizedBox(height: 16.0),
-            Text(
-              'Color:',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Row(
-              children: [
-                buildColorBox('Red', Colors.red),
-                buildColorBox('Black', Colors.black),
-                buildColorBox('Blue', Colors.blue),
-                buildColorBox('Yellow', Colors.yellow),
-                buildColorBox('White', Colors.white),
-              ],
-            ),
+            // Text(
+            //   'Color:',
+            //   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            // ),
+            // Row(
+            //   children: [
+            //     buildColorBox('Red', Colors.red),
+            //     buildColorBox('Black', Colors.black),
+            //     buildColorBox('Blue', Colors.blue),
+            //     buildColorBox('Yellow', Colors.yellow),
+            //     buildColorBox('White', Colors.white),
+            //   ],
+            // ),
             const SizedBox(height: 16.0),
             TextField(
               controller: pincodeController,
+              style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 labelText: 'Enter Pincode',
-                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: Colors.white54),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
               ),
             ),
             const SizedBox(height: 16.0),
@@ -157,7 +169,14 @@ class _ProductPageState extends State<ProductPage> {
                         );
                       }
                     : null,
-                child: const Text('Add to Cart'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Colors.transparent,
+                  side: const BorderSide(color: Colors.white),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text('Add to Cart', style: TextStyle(color: Colors.white)),
               ),
             ),
           ],
