@@ -311,7 +311,7 @@ class _HomePageState extends State<HomePage> {
         width: 300,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/banner.png'), 
+            image: AssetImage('assets/images/banner.png'),
             // Replace with your banner image
             fit: BoxFit.contain,
           ),
@@ -334,10 +334,11 @@ class _HomePageState extends State<HomePage> {
           SizedBox(height: 10),
           Container(
             height: 100,
-            width:300,
+            width: 300,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/anime.jpeg'), // Replace with your section banner image
+                image: AssetImage(
+                    'assets/images/anime.jpeg'), // Replace with your section banner image
                 fit: BoxFit.cover,
               ),
               borderRadius: BorderRadius.circular(10),
@@ -348,7 +349,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-Widget _sectionBanner2(String title) {
+  Widget _sectionBanner2(String title) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -361,10 +362,11 @@ Widget _sectionBanner2(String title) {
           SizedBox(height: 10),
           Container(
             height: 100,
-            width:300,
+            width: 300,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/tradition.jpeg'), // Replace with your section banner image
+                image: AssetImage(
+                    'assets/images/tradition.jpeg'), // Replace with your section banner image
                 fit: BoxFit.cover,
               ),
               borderRadius: BorderRadius.circular(10),
@@ -374,6 +376,7 @@ Widget _sectionBanner2(String title) {
       ),
     );
   }
+
   Widget _gridSection(List<String> images) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -402,6 +405,7 @@ Widget _sectionBanner2(String title) {
     );
   }
 }
+
 // Stateful widget for user profile screen
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
@@ -869,6 +873,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 12.0),
           ),
+
+          // https://gaur3009-Modelgen3.hf.space/call/predict
           onPressed: () async {},
         ),
         const SizedBox(height: 20.0),
@@ -1317,7 +1323,8 @@ class _CommunityPageState extends State<CommunityPage> {
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
       final postId = FirebaseFirestore.instance.collection('posts').doc().id;
-      final storageRef = FirebaseStorage.instance.ref().child('posts/$uid/$postId/$fileName');
+      final storageRef =
+          FirebaseStorage.instance.ref().child('posts/$uid/$postId/$fileName');
 
       final uploadTask = storageRef.putFile(_selectedImage!);
 
@@ -1411,7 +1418,8 @@ class _CommunityPageState extends State<CommunityPage> {
                   onPressed: () => _uploadPost(context),
                   child: Text('Post'),
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.black, backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -1567,7 +1575,8 @@ class _PostItemState extends State<PostItem> {
                 children: [
                   Text(
                     widget.post.userName ?? 'Unknown User',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     widget.post.userEmail ?? 'No Email',
@@ -1578,7 +1587,8 @@ class _PostItemState extends State<PostItem> {
             ],
           ),
           ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 400,maxWidth: 400), // Limit the height of the image
+            constraints: BoxConstraints(
+                maxHeight: 400, maxWidth: 400), // Limit the height of the image
             child: Image.network(
               widget.post.downloadUrl,
               width: 400,
@@ -1599,25 +1609,30 @@ class _PostItemState extends State<PostItem> {
                 icon: Icon(Icons.thumb_up, color: Colors.white),
                 onPressed: _likePost,
               ),
-              Text(widget.post.likes.toString(), style: TextStyle(color: Colors.white)),
+              Text(widget.post.likes.toString(),
+                  style: TextStyle(color: Colors.white)),
               IconButton(
                 icon: Icon(Icons.thumb_down, color: Colors.white),
                 onPressed: _dislikePost,
               ),
-              Text(widget.post.dislikes.toString(), style: TextStyle(color: Colors.white)),
+              Text(widget.post.dislikes.toString(),
+                  style: TextStyle(color: Colors.white)),
               IconButton(
                 icon: Icon(Icons.comment, color: Colors.white),
                 onPressed: _toggleComments,
               ),
-              Text(widget.post.comments.length.toString(), style: TextStyle(color: Colors.white)),
+              Text(widget.post.comments.length.toString(),
+                  style: TextStyle(color: Colors.white)),
             ],
           ),
           if (_showComments)
             Column(
               children: widget.post.comments.map((comment) {
                 return ListTile(
-                  title: Text(comment['userName'] ?? 'Anonymous', style: TextStyle(color: Colors.white)),
-                  subtitle: Text(comment['comment'] ?? '', style: TextStyle(color: Colors.white70)),
+                  title: Text(comment['userName'] ?? 'Anonymous',
+                      style: TextStyle(color: Colors.white)),
+                  subtitle: Text(comment['comment'] ?? '',
+                      style: TextStyle(color: Colors.white70)),
                 );
               }).toList()
                 ..add(
