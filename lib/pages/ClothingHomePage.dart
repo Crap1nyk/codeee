@@ -2,8 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/widgets.dart';
 import 'package:part3/main.dart';
+import 'package:part3/pages/test.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -797,6 +802,7 @@ class CartScreen extends StatelessWidget {
 }
 
 final GlobalKey<_ImageAreaState> _imageAreaKey = GlobalKey();
+final GlobalKey<_PromptAreaState> _promptAreaKey = GlobalKey();
 
 class ProfileScreen extends StatefulWidget {
   final Function(Uint8List) addImageToProducts;
@@ -809,6 +815,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final TextEditingController _controller = TextEditingController();
   String _selectedModel = 'Model 1'; // Default selected model
 
   @override
@@ -861,7 +868,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _model1UI() {
     return Column(
       children: <Widget>[
-        _PromptArea(),
+        _PromptArea(key: _promptAreaKey),
         ElevatedButton.icon(
           icon: Icon(Icons.auto_awesome_sharp, color: Colors.white),
           label: Text('Generate', style: TextStyle(color: Colors.white)),
@@ -873,9 +880,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 12.0),
           ),
-
-          // https://gaur3009-Modelgen3.hf.space/call/predict
-          onPressed: () async {},
+          onPressed: () async {
+            final inputValues = _promptAreaKey.currentState?.getInputValues();
+            if (inputValues != null) {
+              _generateImage(inputValues);
+            }
+          },
         ),
         const SizedBox(height: 20.0),
         _ImageArea(key: _imageAreaKey),
@@ -921,6 +931,143 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 25.0),
       ],
     );
+  }
+
+  Future<void> _generateImage(Map<String, String> inputValues) async {
+    final color = inputValues['color'];
+    final dressType = inputValues['dressType'];
+    final design = inputValues['design'];
+
+    final url = Uri.parse('https://fragger246-mockupgen.hf.space/call/infer');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "data": [
+          'single',
+          color,
+          dressType,
+          design,
+          "hanging on the plain wall",
+          "none", // Assuming "none" as a placeholder for the negative prompt
+          0,
+          true,
+          256,
+          256,
+          0,
+          1
+        ]
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data.containsKey('event_id')) {
+        final eventId = data['event_id'];
+        _pollForResult(eventId);
+      } else {
+        print("Unexpected response format: ${response.body}");
+      }
+    } else {
+      print("Failed to generate image: ${response.body}");
+    }
+  }
+
+  Future<void> _pollForResult(String eventId) async {
+    final url =
+        Uri.parse('https://fragger246-mockupgen.hf.space/call/result/$eventId');
+    bool resultReady = false;
+
+    while (!resultReady) {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final responseBody = response.body;
+        print("Polling result response: $responseBody");
+
+        // Split the response by lines
+        final lines = responseBody.split('\n');
+
+        for (int i = 0; i < lines.length; i++) {
+          print("Processing line: ${lines[i]}");
+
+          if (lines[i].startsWith('event: ')) {
+            final event =
+                lines[i].substring(6).trim(); // Extract the event type
+            print("Event type: $event");
+
+            if (event == 'complete') {
+              // Find the next line containing JSON data
+              print("Complete event received, parsing data...");
+              if (i + 1 < lines.length && lines[i + 1].startsWith('data: ')) {
+                final dataLine = lines[i + 1];
+                print("Data line: $dataLine");
+
+                if (dataLine.isNotEmpty) {
+                  try {
+                    // Remove 'data: ' prefix and parse the JSON
+                    final jsonString = dataLine.substring(5).trim();
+                    print("JSON string: $jsonString");
+
+                    if (jsonString.isNotEmpty && jsonString != 'null') {
+                      final jsonData = jsonDecode(jsonString);
+
+                      if (jsonData != null &&
+                          jsonData is List &&
+                          jsonData.isNotEmpty) {
+                        final imageUrl =
+                            jsonData[0]['url']; // Extract the image URL
+                        print("Image URL: $imageUrl");
+
+                        final imageResponse =
+                            await http.get(Uri.parse(imageUrl));
+                        if (imageResponse.statusCode == 200) {
+                          setState(() {
+                            _imageAreaKey.currentState
+                                ?.updateImageData(imageResponse.bodyBytes);
+                            resultReady = true;
+                          });
+                        } else {
+                          print(
+                              "Failed to download image: ${imageResponse.body}");
+
+                          resultReady = true;
+                        }
+                      } else {
+                        print("No valid data found.");
+
+                        resultReady = true;
+                      }
+                    } else {
+                      print("Data is empty or 'null'.");
+
+                      resultReady = true;
+                    }
+                  } catch (e) {
+                    print("Error parsing JSON data: $e");
+                    print("Response body: ${dataLine}");
+
+                    resultReady = true;
+                  }
+                } else {
+                  print("Data line is empty.");
+
+                  resultReady = true;
+                }
+              }
+            } else if (event == 'heartbeat') {
+              // Continue polling
+              await Future.delayed(Duration(seconds: 5));
+            }
+          }
+        }
+      } else {
+        print("Failed to retrieve result: ${response.body}");
+        resultReady = true;
+      }
+    }
   }
 
   Widget _model2UI() {
@@ -1166,6 +1313,12 @@ class _ImageArea extends StatefulWidget {
   @override
   _ImageAreaState createState() => _ImageAreaState();
 }
+// class _PromptArea extends StatefulWidget {
+//   const _PromptArea{Key? key}) : super(key: key);
+
+//   @override
+//   _PromptAreaState createState() => _PromptAreaState();
+// }
 
 class _ImageAreaState extends State<_ImageArea> {
   Uint8List? imageData;
@@ -1200,6 +1353,8 @@ class _ImageAreaState extends State<_ImageArea> {
 }
 
 class _PromptArea extends StatefulWidget {
+  const _PromptArea({Key? key}) : super(key: key);
+
   @override
   _PromptAreaState createState() => _PromptAreaState();
 }
@@ -1208,6 +1363,14 @@ class _PromptAreaState extends State<_PromptArea> {
   final TextEditingController _colorController = TextEditingController();
   final TextEditingController _dressTypeController = TextEditingController();
   final TextEditingController _designController = TextEditingController();
+
+  Map<String, String> getInputValues() {
+    return {
+      'color': _colorController.text,
+      'dressType': _dressTypeController.text,
+      'design': _designController.text,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -39,7 +39,7 @@ class AuthGate extends StatelessWidget {
           if (user == null) {
             return LoginScreen(); // Navigate to SignupScreen when starting the app for the first time
           } else {
-            return TextToImageWidget(); // Navigate to ClothingHomePage
+            return ClothingHomePage(); // Navigate to ClothingHomePage
           }
         } else {
           return Scaffold(
