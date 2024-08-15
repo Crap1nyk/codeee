@@ -26,6 +26,8 @@ import 'package:image_picker/image_picker.dart'; // For picking images
 import 'dart:io'; // For File handling
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:path/path.dart' as path;
+import 'wallet_screen.dart';
+import 'MyOrdersScreen.dart';
 
 // Entry point of the application
 void main() async {
@@ -572,6 +574,10 @@ class _UserScreenState extends State<UserScreen> {
                 children: [
                   _buildListTile(CupertinoIcons.bag_fill, 'My Orders', () {
                     // Navigate to My Orders page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyOrdersScreen()),
+                    );
                   }),
                   _buildListTile(CupertinoIcons.person_fill, 'Personal Info',
                       () {
@@ -584,7 +590,10 @@ class _UserScreenState extends State<UserScreen> {
                   }),
                   _buildListTile(CupertinoIcons.money_dollar_circle, 'Wallet',
                       () {
-                    // Navigate to Wallet page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => WalletScreen()),
+                    );
                   }),
                   _buildListTile(
                       CupertinoIcons.arrow_right_circle_fill, 'Logout', () {
@@ -600,7 +609,7 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-// Function to create list tiles with border
+  // Function to create list tiles with border
   ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       title: Text(
@@ -629,89 +638,100 @@ class _UserScreenState extends State<UserScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Personal Info'),
+          backgroundColor: Colors.black87, // Dark background for dialog
+          title: Text(
+            'Edit Personal Info',
+            style: TextStyle(color: Colors.white), // White text color
+          ),
           content: Form(
             key: _formKey,
             child: SingleChildScrollView(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildTextFormField('Name', 'name'),
-                  _buildTextFormField('Phone', 'phone'),
-                  DropdownButtonFormField<String>(
-                    value: userInfo['gender'],
-                    decoration: const InputDecoration(labelText: 'Gender'),
-                    items: <String>['Male', 'Female', 'Other']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (value) => userInfo['gender'] = value,
-                  ),
-                  _buildTextFormField('Address', 'address'),
                   TextFormField(
-                    controller: dobController,
-                    decoration: const InputDecoration(
-                        labelText: 'Date of Birth (YYYY-MM-DD)'),
-                    onChanged: (value) => userInfo['dob'] = value,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your date of birth';
-                      }
-                      return null;
+                    initialValue: userInfo['name'],
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      labelStyle: TextStyle(color: Colors.white),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.purpleAccent),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.white),
+                    onSaved: (value) {
+                      userInfo['name'] = value!;
                     },
                   ),
-                  _buildTextFormField('Email', 'email', isEmail: true),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    initialValue: userInfo['gender'],
+                    decoration: InputDecoration(
+                      labelText: 'Gender',
+                      labelStyle: TextStyle(color: Colors.white),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.purpleAccent),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.white),
+                    onSaved: (value) {
+                      userInfo['gender'] = value!;
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: dobController,
+                    decoration: InputDecoration(
+                      labelText: 'Date of Birth',
+                      labelStyle: TextStyle(color: Colors.white),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.purpleAccent),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.white),
+                    onSaved: (value) {
+                      userInfo['dob'] = value!;
+                    },
+                  ),
                 ],
               ),
             ),
           ),
-          actions: [
+          actions: <Widget>[
             TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white),
+              ),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user.uid)
-                      .update(userInfo);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Updated successfully')),
-                  );
-                  setState(() {}); // Refresh the UI
-                }
+              child: Text(
+                'Save',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () {
+                _formKey.currentState?.save();
+                FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .update(userInfo);
+                Navigator.of(context).pop();
               },
-              child: const Text('Save'),
             ),
           ],
         );
-      },
-    );
-  }
-
-  // Helper function to create text form fields
-  Widget _buildTextFormField(String label, String key, {bool isEmail = false}) {
-    return TextFormField(
-      initialValue: userInfo[key] ?? '',
-      decoration: InputDecoration(labelText: label),
-      onChanged: (value) => userInfo[key] = value,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your $label';
-        }
-        if (isEmail &&
-            (!value.contains('@') ||
-                !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value))) {
-          return 'Please enter a valid email address';
-        }
-        return null;
       },
     );
   }
@@ -816,8 +836,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _controller = TextEditingController();
-  String _selectedModel = 'Model 1'; // Default selected model
-
+  String _selectedModel = 'Model 1'; 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
