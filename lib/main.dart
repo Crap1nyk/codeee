@@ -37,7 +37,7 @@ class AuthGate extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
           if (user == null) {
-            return SignupScreen(); // Navigate to SignupScreen when starting the app for the first time
+            return LoginScreen(); // Navigate to SignupScreen when starting the app for the first time
           } else {
             return ClothingHomePage(); // Navigate to ClothingHomePage
           }

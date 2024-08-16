@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'order_details_screen.dart';  // Import the new screen
 
 class MyOrdersScreen extends StatelessWidget {
   // Sample data for orders with product image URLs
@@ -41,24 +42,30 @@ class MyOrdersScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final order = orders[index];
           return Container(
-            margin: EdgeInsets.symmetric(vertical: 8.0), // Add margin to each item
+            margin: EdgeInsets.symmetric(vertical: 12.0), // Increased margin for more spacing
             child: ListTile(
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0), // Increased padding
               tileColor: Colors.grey[900],
               textColor: Colors.white,
               leading: Container(
-                width: 80,
-                height: 80,
+                width: 100, // Increased image width
+                height: 100, // Increased image height
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: NetworkImage(order['productImage']),
                     fit: BoxFit.cover,
                   ),
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(12.0), // Larger border radius for a rounder look
                 ),
               ),
-              title: Text('Order ID: ${order['orderId']}'),
-              subtitle: Text('Status: ${order['status']}'),
+              title: Text(
+                'Order ID: ${order['orderId']}',
+                style: TextStyle(fontSize: 18), // Increased title font size
+              ),
+              subtitle: Text(
+                'Status: ${order['status']}',
+                style: TextStyle(fontSize: 16), // Increased subtitle font size
+              ),
               trailing: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -67,27 +74,29 @@ class MyOrdersScreen extends StatelessWidget {
                     '\$${order['totalAmount'].toStringAsFixed(2)}',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 20, // Increased text size
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Handle view details action
-                      _showOrderDetails(context, order);
+                  SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () {
+                      // Navigate to the OrderDetailsScreen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OrderDetailsScreen(order: order, orderStatus: [],),
+                        ),
+                      );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple, // Button color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0), // Smaller radius
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0), // Smaller padding
-                      textStyle: TextStyle(
-                        fontSize: 14, // Smaller text size
+                    child: Text(
+                      'Details',
+                      style: TextStyle(
+                        color: Colors.blueAccent, // Text color
+                        fontSize: 10, // Text size
+                        decoration: TextDecoration.underline, // Underline to indicate a link
                       ),
                     ),
-                    child: Text('View Details'),
                   ),
                 ],
               ),
@@ -100,46 +109,6 @@ class MyOrdersScreen extends StatelessWidget {
         },
       ),
       backgroundColor: Colors.black,
-    );
-  }
-
-  void _showOrderDetails(BuildContext context, Map<String, dynamic> order) {
-    // Display order details
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.grey[800],
-          title: Text(
-            'Order Details',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Order ID: ${order['orderId']}', style: TextStyle(color: Colors.white)),
-              Text('Total Amount: \$${order['totalAmount'].toStringAsFixed(2)}', style: TextStyle(color: Colors.white)),
-              Text('Status: ${order['status']}', style: TextStyle(color: Colors.white)),
-              SizedBox(height: 10),
-              Image.network(
-                order['productImage'],
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Close', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
     );
   }
 }
