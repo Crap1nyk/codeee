@@ -750,7 +750,14 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cart')),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.grey[900],
+        title: const Text(
+          'Cart',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -759,18 +766,30 @@ class CartScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Text('Something went wrong');
+            return const Center(
+              child: Text(
+                'Something went wrong',
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text('Loading');
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
 
           final cart =
               snapshot.data?.docs.map((doc) => doc.data()).toList() ?? [];
 
           return cart.isEmpty
-              ? const Center(child: Text('Your cart is empty'))
+              ? const Center(
+                  child: Text(
+                    'Your cart is empty',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                )
               : ListView.builder(
                   itemCount: cart.length,
                   itemBuilder: (context, index) {
@@ -779,19 +798,33 @@ class CartScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 12.0),
                       child: Card(
-                        elevation: 20,
+                        color: Colors.grey[850],
+                        elevation: 10,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(20.0),
                           leading: item['image'] is List
                               ? Image.memory(
                                   Uint8List.fromList(
                                       (item['image'] as List).cast<int>()),
-                                  width: 200,
-                                  height: 200,
+                                  width: 100,
+                                  height: 100,
                                 )
                               : null,
-                          title: Text(item['name'].toString()),
-                          subtitle: Text('\$${item['price'].toString()}'),
+                          title: Text(
+                            item['name'].toString(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          subtitle: Text(
+                            '\$${item['price'].toString()}',
+                            style: const TextStyle(color: Colors.greenAccent),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                          ),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -813,8 +846,20 @@ class CartScreen extends StatelessWidget {
           : Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: () {},
-                child: const Text('Checkout'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black, backgroundColor: Colors.greenAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                onPressed: () {
+                  // Add your checkout logic here
+                },
+                child: const Text(
+                  'Checkout',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
     );

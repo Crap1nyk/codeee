@@ -1,6 +1,75 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 
+// Define the OrderSummaryPage widget
+class OrderSummaryPage extends StatelessWidget {
+  final Map<String, dynamic> product;
+  final String selectedSize;
+  final String selectedColor;
+  final String pincode;
+  final String address;
+
+  const OrderSummaryPage({
+    Key? key,
+    required this.product,
+    required this.selectedSize,
+    required this.selectedColor,
+    required this.pincode,
+    required this.address,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Order Summary'),
+        backgroundColor: Colors.black,
+      ),
+      backgroundColor: const Color.fromARGB(255, 8, 0, 0), // Metallic black background
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Product: ${product['name']}', style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 8.0),
+            Text('Price: \$${product['price']}', style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 8.0),
+            Text('Size: $selectedSize', style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 8.0),
+            Text('Color: $selectedColor', style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 8.0),
+            Text('Pincode: $pincode', style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 8.0),
+            Text('Address: $address', style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 16.0),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Order Confirmed')),
+                  );
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.transparent,
+                  side: const BorderSide(color: Colors.white),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text('Confirm Order', style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Define the ProductPage widget
 class ProductPage extends StatefulWidget {
   final Map<String, dynamic> product;
 
@@ -14,6 +83,8 @@ class _ProductPageState extends State<ProductPage> {
   String selectedSize = 'M';
   String selectedColor = 'Red';
   final TextEditingController pincodeController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  bool addressSaved = false; // Simulates whether an address is saved
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +143,7 @@ class _ProductPageState extends State<ProductPage> {
         title: Text(product['name']),
         backgroundColor: Colors.black,
       ),
-      backgroundColor: Color.fromARGB(255, 8, 0, 0), // Metallic black background
+      backgroundColor: const Color.fromARGB(255, 8, 0, 0), // Metallic black background
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -100,6 +171,21 @@ class _ProductPageState extends State<ProductPage> {
             ),
             const SizedBox(height: 16.0),
             Text(
+              'Fabric: Cotton Biowash',
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'Fabric Weight: 240gsm',
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'Print Type: DTF Premium',
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
+            const SizedBox(height: 16.0),
+            Text(
               'Availability: ${isAvailable ? 'In Stock' : 'Out of Stock'}',
               style: TextStyle(
                 fontSize: 16,
@@ -122,24 +208,10 @@ class _ProductPageState extends State<ProductPage> {
               items: <String>['S', 'M', 'L', 'XL'].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: TextStyle(color: Colors.white)),
+                  child: Text(value, style: const TextStyle(color: Colors.white)),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 16.0),
-            // Text(
-            //   'Color:',
-            //   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-            // ),
-            // Row(
-            //   children: [
-            //     buildColorBox('Red', Colors.red),
-            //     buildColorBox('Black', Colors.black),
-            //     buildColorBox('Blue', Colors.blue),
-            //     buildColorBox('Yellow', Colors.yellow),
-            //     buildColorBox('White', Colors.white),
-            //   ],
-            // ),
             const SizedBox(height: 16.0),
             TextField(
               controller: pincodeController,
@@ -163,25 +235,84 @@ class _ProductPageState extends State<ProductPage> {
               child: ElevatedButton(
                 onPressed: isAvailable
                     ? () {
-                        // Add to cart functionality here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Added to cart')),
-                        );
+                        if (!addressSaved) {
+                          _showAddressDialog();
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrderSummaryPage(
+                                product: widget.product,
+                                selectedSize: selectedSize,
+                                selectedColor: selectedColor,
+                                pincode: pincodeController.text,
+                                address: addressController.text,
+                              ),
+                            ),
+                          );
+                        }
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.transparent,
                   side: const BorderSide(color: Colors.white),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: const Text('Add to Cart', style: TextStyle(color: Colors.white)),
+                child: const Text('Continue to Checkout', style: TextStyle(color: Colors.white)),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showAddressDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Address'),
+          content: TextField(
+            controller: addressController,
+            decoration: const InputDecoration(
+              labelText: 'Address',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Save Address'),
+              onPressed: () {
+                setState(() {
+                  addressSaved = true;
+                });
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrderSummaryPage(
+                      product: widget.product,
+                      selectedSize: selectedSize,
+                      selectedColor: selectedColor,
+                      pincode: pincodeController.text,
+                      address: addressController.text,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
