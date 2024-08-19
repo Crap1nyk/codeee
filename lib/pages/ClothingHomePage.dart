@@ -413,7 +413,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Stateful widget for user profile screen
+
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
 
@@ -422,18 +422,17 @@ class UserScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserScreen> {
-  late User user; // Firebase user object
-  Map<String, dynamic> userInfo = {}; // Map to store user information
-  File? _image; // Variable to store the selected image
+  late User user;
+  Map<String, dynamic> userInfo = {};
+  File? _image;
 
   @override
   void initState() {
     super.initState();
-    user = FirebaseAuth.instance.currentUser!; // Get current Firebase user
-    _fetchUserInfo(); // Fetch user information
+    user = FirebaseAuth.instance.currentUser!;
+    _fetchUserInfo();
   }
 
-  // Function to fetch user information from Firestore
   Future<void> _fetchUserInfo() async {
     try {
       FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -452,7 +451,6 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
-  // Function to pick an image from the gallery
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -467,7 +465,7 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
             Color.fromARGB(255, 0, 0, 0),
@@ -478,33 +476,29 @@ class _UserScreenState extends State<UserScreen> {
         ),
       ),
       child: Scaffold(
-        backgroundColor:
-            Colors.transparent, // Make Scaffold background transparent
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Profile',
-              style: TextStyle(
-                  color: Colors.white)), // White text for app bar title
+          title: const Text('Profile', style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.transparent,
-          elevation: 0, // No shadow
-          iconTheme: IconThemeData(color: Colors.white), // White icons
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // Rounded UI with user image and information
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
                     Color.fromRGBO(208, 108, 236, 1),
                     Color.fromARGB(255, 89, 0, 255)
-                  ], // Gradient colors
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black54,
                     blurRadius: 10.0,
@@ -518,22 +512,21 @@ class _UserScreenState extends State<UserScreen> {
                     onTap: _pickImage,
                     child: CircleAvatar(
                       radius: 50,
-                      backgroundColor: Colors
-                          .grey[800], // Darker grey for the avatar background
+                      backgroundColor: Colors.grey[800],
                       backgroundImage: _image != null
-                          ? FileImage(_image!) as ImageProvider
+                          ? FileImage(_image!)
                           : (userInfo['photoUrl'] != null
-                              ? NetworkImage(userInfo['photoUrl']!)
+                              ? NetworkImage(userInfo['photoUrl'])
                               : null) as ImageProvider?,
                       child: _image == null && userInfo['photoUrl'] == null
-                          ? Icon(Icons.camera_alt, color: Colors.white)
+                          ? const Icon(Icons.camera_alt, color: Colors.white)
                           : null,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     userInfo['name'] ?? 'Name not available',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -541,28 +534,25 @@ class _UserScreenState extends State<UserScreen> {
                   ),
                   Text(
                     'Gender: ${userInfo['gender'] ?? 'Not specified'}',
-                    style: TextStyle(
-                        color: Colors.white70), // Slightly lighter text color
+                    style: const TextStyle(color: Colors.white70),
                   ),
                   Text(
                     'Phone: ${userInfo['phone'] ?? 'Not specified'}',
-                    style: TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Colors.white70),
                   ),
                   Text(
                     'Wallet: \$${userInfo['walletAmount'] ?? 0}',
-                    style: TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Colors.white70),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
-            // Container for list tiles
+            const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
-                color: Colors
-                    .black, // Solid black background for the list tiles container
+                color: Colors.black,
                 borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black54,
                     blurRadius: 10.0,
@@ -573,23 +563,30 @@ class _UserScreenState extends State<UserScreen> {
               child: Column(
                 children: [
                   _buildListTile(CupertinoIcons.bag_fill, 'My Orders', () {
-                    // Navigate to My Orders page
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MyOrdersScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => MyOrdersScreen()),
                     );
                   }),
                   _buildListTile(CupertinoIcons.person_fill, 'Personal Info',
                       () {
-                    _showPersonalInfoDialog(
-                        context); // Show personal info dialog
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PersonalInfoScreen(
+                          userInfo: userInfo,
+                          user: user,
+                        ),
+                      ),
+                    );
                   }),
-                  _buildListTile(CupertinoIcons.question_circle_fill, 'FAQs',
-                      () {
+                  _buildListTile(
+                      CupertinoIcons.question_circle_fill, 'FAQs', () {
                     // Navigate to FAQs page
                   }),
-                  _buildListTile(CupertinoIcons.money_dollar_circle, 'Wallet',
-                      () {
+                  _buildListTile(
+                      CupertinoIcons.money_dollar_circle, 'Wallet', () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => WalletScreen()),
@@ -597,8 +594,7 @@ class _UserScreenState extends State<UserScreen> {
                   }),
                   _buildListTile(
                       CupertinoIcons.arrow_right_circle_fill, 'Logout', () {
-                    FirebaseAuth.instance.signOut(); // Sign out current user
-                    // Navigate to Login page
+                    FirebaseAuth.instance.signOut();
                   }),
                 ],
               ),
@@ -609,133 +605,207 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  // Function to create list tiles with border
   ListTile _buildListTile(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       title: Text(
         title,
-        style: TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.white),
       ),
       leading: Icon(icon, color: Colors.white),
       onTap: onTap,
-      tileColor: Colors.black, // Black background for list tiles
+      tileColor: Colors.black,
       shape: RoundedRectangleBorder(
-        side: BorderSide(
-            color: Colors.white24, width: 1), // Border color and width
+        side: const BorderSide(color: Colors.white24, width: 1),
         borderRadius: BorderRadius.circular(12.0),
       ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-    );
-  }
-
-  // Function to show personal info dialog
-  Future<void> _showPersonalInfoDialog(BuildContext context) async {
-    final _formKey = GlobalKey<FormState>();
-    TextEditingController dobController =
-        TextEditingController(text: userInfo['dob']);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.black87, // Dark background for dialog
-          title: Text(
-            'Edit Personal Info',
-            style: TextStyle(color: Colors.white), // White text color
-          ),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    initialValue: userInfo['name'],
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      labelStyle: TextStyle(color: Colors.white),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.purpleAccent),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                    style: TextStyle(color: Colors.white),
-                    onSaved: (value) {
-                      userInfo['name'] = value!;
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                    initialValue: userInfo['gender'],
-                    decoration: InputDecoration(
-                      labelText: 'Gender',
-                      labelStyle: TextStyle(color: Colors.white),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.purpleAccent),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                    style: TextStyle(color: Colors.white),
-                    onSaved: (value) {
-                      userInfo['gender'] = value!;
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                    controller: dobController,
-                    decoration: InputDecoration(
-                      labelText: 'Date of Birth',
-                      labelStyle: TextStyle(color: Colors.white),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.purpleAccent),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                    style: TextStyle(color: Colors.white),
-                    onSaved: (value) {
-                      userInfo['dob'] = value!;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Save',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {
-                _formKey.currentState?.save();
-                FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user.uid)
-                    .update(userInfo);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     );
   }
 }
+
+class PersonalInfoScreen extends StatefulWidget {
+  final Map<String, dynamic> userInfo;
+  final User user;
+
+  const PersonalInfoScreen({required this.userInfo, required this.user, Key? key})
+      : super(key: key);
+
+  @override
+  _PersonalInfoScreenState createState() => _PersonalInfoScreenState();
+}
+
+class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late Map<String, dynamic> userInfo;
+
+  @override
+  void initState() {
+    super.initState();
+    userInfo = Map<String, dynamic>.from(widget.userInfo);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Personal Info', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      backgroundColor: Colors.black87,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                initialValue: userInfo['name'],
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  labelStyle: TextStyle(color: Colors.white),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.purpleAccent),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onSaved: (value) {
+                  userInfo['name'] = value!;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                initialValue: userInfo['gender'],
+                decoration: const InputDecoration(
+                  labelText: 'Gender',
+                  labelStyle: TextStyle(color: Colors.white),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.purpleAccent),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onSaved: (value) {
+                  userInfo['gender'] = value!;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                initialValue: userInfo['dob'],
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth',
+                  labelStyle: TextStyle(color: Colors.white),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.purpleAccent),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onSaved: (value) {
+                  userInfo['dob'] = value!;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                initialValue: userInfo['address'],
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                  labelStyle: TextStyle(color: Colors.white),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.purpleAccent),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onSaved: (value) {
+                  userInfo['address'] = value!;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                initialValue: userInfo['pincode'],
+                decoration: const InputDecoration(
+                  labelText: 'Pincode',
+                  labelStyle: TextStyle(color: Colors.white),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.purpleAccent),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+                keyboardType: TextInputType.number,
+                onSaved: (value) {
+                  userInfo['pincode'] = value!;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                initialValue: userInfo['district'],
+                decoration: const InputDecoration(
+                  labelText: 'District',
+                  labelStyle: TextStyle(color: Colors.white),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.purpleAccent),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onSaved: (value) {
+                  userInfo['district'] = value!;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    _savePersonalInfo();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purpleAccent,
+                ),
+                child: const Text('Save', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _savePersonalInfo() async {
+    try {
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      await firestore.collection('users').doc(widget.user.uid).update(userInfo);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Personal info updated successfully')),
+      );
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update personal info: $e')),
+      );
+    }
+  }
+}
+
 
 class CartScreen extends StatelessWidget {
   final List<Map<String, dynamic>> cart;

@@ -1,73 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
-
-// Define the OrderSummaryPage widget
-class OrderSummaryPage extends StatelessWidget {
-  final Map<String, dynamic> product;
-  final String selectedSize;
-  final String selectedColor;
-  final String pincode;
-  final String address;
-
-  const OrderSummaryPage({
-    Key? key,
-    required this.product,
-    required this.selectedSize,
-    required this.selectedColor,
-    required this.pincode,
-    required this.address,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Summary'),
-        backgroundColor: Colors.black,
-      ),
-      backgroundColor: const Color.fromARGB(255, 8, 0, 0), // Metallic black background
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Product: ${product['name']}', style: const TextStyle(color: Colors.white)),
-            const SizedBox(height: 8.0),
-            Text('Price: \$${product['price']}', style: const TextStyle(color: Colors.white)),
-            const SizedBox(height: 8.0),
-            Text('Size: $selectedSize', style: const TextStyle(color: Colors.white)),
-            const SizedBox(height: 8.0),
-            Text('Color: $selectedColor', style: const TextStyle(color: Colors.white)),
-            const SizedBox(height: 8.0),
-            Text('Pincode: $pincode', style: const TextStyle(color: Colors.white)),
-            const SizedBox(height: 8.0),
-            Text('Address: $address', style: const TextStyle(color: Colors.white)),
-            const SizedBox(height: 16.0),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Order Confirmed')),
-                  );
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.transparent,
-                  side: const BorderSide(color: Colors.white),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-                child: const Text('Confirm Order', style: TextStyle(color: Colors.white)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // Define the ProductPage widget
 class ProductPage extends StatefulWidget {
@@ -91,7 +25,7 @@ class _ProductPageState extends State<ProductPage> {
     final product = widget.product;
 
     // Ensure availability is a boolean and not null
-    final bool isAvailable = product['availability'] ?? false;
+    final bool isAvailable = product['availability'] ?? true;
 
     Widget getProductImage() {
       if (product['image'] is List) {
@@ -235,22 +169,18 @@ class _ProductPageState extends State<ProductPage> {
               child: ElevatedButton(
                 onPressed: isAvailable
                     ? () {
-                        if (!addressSaved) {
-                          _showAddressDialog();
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OrderSummaryPage(
-                                product: widget.product,
-                                selectedSize: selectedSize,
-                                selectedColor: selectedColor,
-                                pincode: pincodeController.text,
-                                address: addressController.text,
-                              ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderSummaryPage(
+                              product: widget.product,
+                              selectedSize: selectedSize,
+                              selectedColor: selectedColor,
+                              pincode: pincodeController.text,
+                              address: 'Sample Address', // Set a default or handle as needed
                             ),
-                          );
-                        }
+                          ),
+                        );
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
@@ -269,50 +199,161 @@ class _ProductPageState extends State<ProductPage> {
       ),
     );
   }
+}
 
-  void _showAddressDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Enter Address'),
-          content: TextField(
-            controller: addressController,
-            decoration: const InputDecoration(
-              labelText: 'Address',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Save Address'),
-              onPressed: () {
-                setState(() {
-                  addressSaved = true;
-                });
-                Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OrderSummaryPage(
-                      product: widget.product,
-                      selectedSize: selectedSize,
-                      selectedColor: selectedColor,
-                      pincode: pincodeController.text,
-                      address: addressController.text,
+class OrderSummaryPage extends StatelessWidget {
+  final Map<String, dynamic> product;
+  final String selectedSize;
+  final String selectedColor;
+  final String pincode;
+  final String address;
+
+  const OrderSummaryPage({
+    Key? key,
+    required this.product,
+    required this.selectedSize,
+    required this.selectedColor,
+    required this.pincode,
+    required this.address,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Order Summary'),
+        backgroundColor: Colors.black,
+      ),
+      backgroundColor: const Color.fromARGB(255, 8, 0, 0), // Metallic black background
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Product Details',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.yellow[700],
                     ),
                   ),
-                );
-              },
+                  const SizedBox(height: 8.0),
+                  Text('Product: ${product['name']}', style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 8.0),
+                  Text('Price: \$${product['price']}', style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 8.0),
+                  Row(
+                    children: [
+                      Expanded(child: Text('Size: $selectedSize', style: const TextStyle(color: Colors.white))),
+                      const SizedBox(width: 16.0),
+                      Expanded(child: Text('Color: $selectedColor', style: const TextStyle(color: Colors.white))),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Delivery Details',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.yellow[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text('Pincode: $pincode', style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 8.0),
+                  Text('Address: $address', style: const TextStyle(color: Colors.white)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Price Details',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.yellow[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Price', style: TextStyle(color: Colors.white)),
+                      Text('\$${product['price']}', style: const TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                  const Divider(color: Colors.white24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Delivery Charges', style: TextStyle(color: Colors.white)),
+                      const Text('Free', style: TextStyle(color: Colors.greenAccent)),
+                    ],
+                  ),
+                  const Divider(color: Colors.white24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Total Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      Text('\$${product['price']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32.0),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Order Confirmed')),
+                  );
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.yellow[700],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text('Confirm Order', style: TextStyle(color: Colors.black)),
+              ),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }
