@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:part3/pages/ClothingHomePage.dart';
 import 'package:part3/pages/test.dart';
+import 'package:part3/pages/SplashScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,28 +32,42 @@ class MyApp extends StatelessWidget {
 class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+    return FutureBuilder(
+      // Use a Future to simulate the delay of showing the splash screen
+      future: _simulateSplashScreen(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
-          final user = snapshot.data;
-          if (user == null) {
-            return LoginScreen(); // Navigate to SignupScreen when starting the app for the first time
-          } else {
-            return ClothingHomePage(); // Navigate to ClothingHomePage
-          }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return SplashScreen(); // Show splash screen while waiting
         } else {
-          return Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+          return StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.active) {
+                final user = snapshot.data;
+                if (user == null) {
+                  return LoginScreen(); // Navigate to LoginScreen if not authenticated
+                } else {
+                  return ClothingHomePage(); // Navigate to ClothingHomePage if authenticated
+                }
+              } else {
+                return Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(), // Show loading spinner while checking auth state
+                  ),
+                );
+              }
+            },
           );
         }
       },
     );
   }
-}
 
+  // Simulate a delay to show the splash screen
+  Future<void> _simulateSplashScreen() async {
+    await Future.delayed(Duration(seconds: 8)); // Adjust the duration as needed
+  }
+}
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
