@@ -1,30 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/semantics.dart';
-import 'package:flutter/widgets.dart';
+import 'package:uuid/uuid.dart';
 import 'package:part3/main.dart';
-import 'package:part3/pages/test.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:part3/pages/LoginScreen.dart';
+
 import 'package:http/http.dart' as http;
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:intl/intl.dart';
-import 'package:part3/models/community_model.dart';
+
 import 'product_page.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart'; // For picking images
+
 import 'dart:io'; // For File handling
-import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:path/path.dart' as path;
 import 'wallet_screen.dart';
 import 'MyOrdersScreen.dart';
@@ -413,7 +405,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
 
@@ -565,8 +556,7 @@ class _UserScreenState extends State<UserScreen> {
                   _buildListTile(CupertinoIcons.bag_fill, 'My Orders', () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => MyOrdersScreen()),
+                      MaterialPageRoute(builder: (context) => MyOrdersScreen()),
                     );
                   }),
                   _buildListTile(CupertinoIcons.person_fill, 'Personal Info',
@@ -581,12 +571,12 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                     );
                   }),
-                  _buildListTile(
-                      CupertinoIcons.question_circle_fill, 'FAQs', () {
+                  _buildListTile(CupertinoIcons.question_circle_fill, 'FAQs',
+                      () {
                     // Navigate to FAQs page
                   }),
-                  _buildListTile(
-                      CupertinoIcons.money_dollar_circle, 'Wallet', () {
+                  _buildListTile(CupertinoIcons.money_dollar_circle, 'Wallet',
+                      () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => WalletScreen()),
@@ -628,7 +618,8 @@ class PersonalInfoScreen extends StatefulWidget {
   final Map<String, dynamic> userInfo;
   final User user;
 
-  const PersonalInfoScreen({required this.userInfo, required this.user, Key? key})
+  const PersonalInfoScreen(
+      {required this.userInfo, required this.user, Key? key})
       : super(key: key);
 
   @override
@@ -649,7 +640,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Personal Info', style: TextStyle(color: Colors.white)),
+        title: const Text('Edit Personal Info',
+            style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -779,7 +771,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purpleAccent,
                 ),
-                child: const Text('Save', style: TextStyle(color: Colors.white)),
+                child:
+                    const Text('Save', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -805,7 +798,6 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     }
   }
 }
-
 
 class CartScreen extends StatelessWidget {
   final List<Map<String, dynamic>> cart;
@@ -899,8 +891,11 @@ class CartScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    ProductPage(product: item),
+                                builder: (context) => ProductPage(
+                                    product: item,
+                                    productId: Uuid().v4(),
+                                    productName: "T-shirt",
+                                    productPrice: "550"),
                               ),
                             );
                           },
@@ -917,7 +912,8 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black, backgroundColor: Colors.greenAccent,
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.greenAccent,
                   padding: const EdgeInsets.symmetric(vertical: 15.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -951,7 +947,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _controller = TextEditingController();
-  String _selectedModel = 'Model 1'; 
+  String _selectedModel = 'Model 1';
   @override
   Widget build(BuildContext context) {
     return Scaffold(

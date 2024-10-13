@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:part3/pages/ClothingHomePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:part3/pages/SignupScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -17,6 +18,11 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text,
         password: _passwordController.text,
       );
+      // Navigate to the home page if login is successful
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ClothingHomePage()),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login failed: $e')),
@@ -25,16 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _signUp() async {
-    try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signup failed: $e')),
-      );
-    }
+    SignupScreen();
   }
 
   Future<void> _showForgotPasswordDialog(BuildContext context) async {

@@ -31,6 +31,8 @@ class SignupScreen extends StatelessWidget {
         'email':
             _emailController.text.trim(), // Assuming you collect this somewhere
         'gender': _genderController.text.trim(),
+        'pincode': "",
+        "district": ""
       }).then((_) {
         print("User information added to Firestore successfully");
         // Navigate to next screen or show success message

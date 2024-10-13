@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:part3/pages/ClothingHomePage.dart';
 import 'package:part3/pages/LoginScreen.dart';
+import 'package:part3/pages/SignupScreen.dart';
 import 'package:lottie/lottie.dart';
-
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -62,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 child: Center(
                   child: Lottie.asset(
-                    'assets/images/Animation - 1724269845344 (3).json', 
+                    'assets/images/Animation - 1724269845344 (3).json',
                     width: 200,
                     height: 200,
                   ),

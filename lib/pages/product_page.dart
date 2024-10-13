@@ -5,9 +5,18 @@ import 'dart:typed_data';
 
 // Define the ProductPage widget
 class ProductPage extends StatefulWidget {
+  final String productId;
+  final String productName;
+  final String productPrice;
   final Map<String, dynamic> product;
 
-  const ProductPage({Key? key, required this.product}) : super(key: key);
+  const ProductPage(
+      {Key? key,
+      required this.product,
+      required this.productId,
+      required this.productName,
+      required this.productPrice})
+      : super(key: key);
 
   @override
   _ProductPageState createState() => _ProductPageState();
@@ -77,7 +86,8 @@ class _ProductPageState extends State<ProductPage> {
         title: Text(product['name']),
         backgroundColor: Colors.black,
       ),
-      backgroundColor: const Color.fromARGB(255, 8, 0, 0), // Metallic black background
+      backgroundColor:
+          const Color.fromARGB(255, 8, 0, 0), // Metallic black background
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -89,10 +99,14 @@ class _ProductPageState extends State<ProductPage> {
             const SizedBox(height: 16.0),
             Text(
               product['name'],
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
             const SizedBox(height: 8.0),
-            Text('\$${product['price']}', style: const TextStyle(color: Colors.white)),
+            Text('\$${product['price']}',
+                style: const TextStyle(color: Colors.white)),
             const SizedBox(height: 16.0),
             Text(
               'Category: ${product['category']}',
@@ -129,7 +143,10 @@ class _ProductPageState extends State<ProductPage> {
             const SizedBox(height: 16.0),
             Text(
               'Size:',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
             DropdownButton<String>(
               dropdownColor: Colors.grey[850],
@@ -139,10 +156,12 @@ class _ProductPageState extends State<ProductPage> {
                   selectedSize = newSize!;
                 });
               },
-              items: <String>['S', 'M', 'L', 'XL'].map<DropdownMenuItem<String>>((String value) {
+              items: <String>['S', 'M', 'L', 'XL']
+                  .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: const TextStyle(color: Colors.white)),
+                  child:
+                      Text(value, style: const TextStyle(color: Colors.white)),
                 );
               }).toList(),
             ),
@@ -177,7 +196,8 @@ class _ProductPageState extends State<ProductPage> {
                               selectedSize: selectedSize,
                               selectedColor: selectedColor,
                               pincode: pincodeController.text,
-                              address: 'Sample Address', // Set a default or handle as needed
+                              address: 'Sample Address',
+                              // Set a default or handle as needed
                             ),
                           ),
                         );
@@ -191,7 +211,8 @@ class _ProductPageState extends State<ProductPage> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: const Text('Continue to Checkout', style: TextStyle(color: Colors.white)),
+                child: const Text('Continue to Checkout',
+                    style: TextStyle(color: Colors.white)),
               ),
             ),
           ],
@@ -224,7 +245,8 @@ class OrderSummaryPage extends StatelessWidget {
         title: const Text('Order Summary'),
         backgroundColor: Colors.black,
       ),
-      backgroundColor: const Color.fromARGB(255, 8, 0, 0), // Metallic black background
+      backgroundColor:
+          const Color.fromARGB(255, 8, 0, 0), // Metallic black background
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -247,15 +269,21 @@ class OrderSummaryPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8.0),
-                  Text('Product: ${product['name']}', style: const TextStyle(color: Colors.white)),
+                  Text('Product: ${product['name']}',
+                      style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 8.0),
-                  Text('Price: \$${product['price']}', style: const TextStyle(color: Colors.white)),
+                  Text('Price: \$${product['price']}',
+                      style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 8.0),
                   Row(
                     children: [
-                      Expanded(child: Text('Size: $selectedSize', style: const TextStyle(color: Colors.white))),
+                      Expanded(
+                          child: Text('Size: $selectedSize',
+                              style: const TextStyle(color: Colors.white))),
                       const SizedBox(width: 16.0),
-                      Expanded(child: Text('Color: $selectedColor', style: const TextStyle(color: Colors.white))),
+                      Expanded(
+                          child: Text('Color: $selectedColor',
+                              style: const TextStyle(color: Colors.white))),
                     ],
                   ),
                 ],
@@ -280,9 +308,11 @@ class OrderSummaryPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8.0),
-                  Text('Pincode: $pincode', style: const TextStyle(color: Colors.white)),
+                  Text('Pincode: $pincode',
+                      style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 8.0),
-                  Text('Address: $address', style: const TextStyle(color: Colors.white)),
+                  Text('Address: $address',
+                      style: const TextStyle(color: Colors.white)),
                 ],
               ),
             ),
@@ -308,24 +338,34 @@ class OrderSummaryPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Price', style: TextStyle(color: Colors.white)),
-                      Text('\$${product['price']}', style: const TextStyle(color: Colors.white)),
+                      const Text('Price',
+                          style: TextStyle(color: Colors.white)),
+                      Text('\$${product['price']}',
+                          style: const TextStyle(color: Colors.white)),
                     ],
                   ),
                   const Divider(color: Colors.white24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Delivery Charges', style: TextStyle(color: Colors.white)),
-                      const Text('Free', style: TextStyle(color: Colors.greenAccent)),
+                      const Text('Delivery Charges',
+                          style: TextStyle(color: Colors.white)),
+                      const Text('Free',
+                          style: TextStyle(color: Colors.greenAccent)),
                     ],
                   ),
                   const Divider(color: Colors.white24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      Text('\$${product['price']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      const Text('Total Amount',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                      Text('\$${product['price']}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -334,21 +374,40 @@ class OrderSummaryPage extends StatelessWidget {
             const SizedBox(height: 32.0),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Order Confirmed')),
-                  );
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                onPressed: () => () async {
+                  try {
+                    await FirebaseFirestore.instance.collection('orders').add({
+                      'productId': product['id'],
+                      'product': product['name'],
+                      'price': product['price'],
+                      'size': selectedSize,
+                      'color': selectedColor,
+                      'pincode': pincode,
+                      'address': address,
+                      'timestamp': FieldValue.serverTimestamp(),
+                      'userId': FirebaseAuth.instance.currentUser!.uid,
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Order Confirmed')),
+                    );
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error placing order')),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
                   foregroundColor: Colors.black,
                   backgroundColor: Colors.yellow[700],
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: const Text('Confirm Order', style: TextStyle(color: Colors.black)),
+                child: const Text('Confirm Order',
+                    style: TextStyle(color: Colors.black)),
               ),
             ),
           ],
