@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:part3/pages/LoginScreen.dart';
 
 class SignupScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -114,6 +115,15 @@ class SignupScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: _signup,
                 child: Text('Sign Up'),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                  );
+                },
+                child: Text('Login'),
               ),
             ],
           ),

@@ -217,7 +217,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
-                  onPressed: () => _signUp(),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => SignupScreen()),
+                    );
+                  },
                 ),
                 SizedBox(height: 20),
                 Text(
