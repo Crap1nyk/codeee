@@ -12,6 +12,23 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  void _checkAuthentication() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // User is already logged in, navigate to the home page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ClothingHomePage()),
+      );
+    }
+  }
+
   void _login(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -28,10 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(content: Text('Login failed: $e')),
       );
     }
-  }
-
-  void _signUp() async {
-    SignupScreen();
   }
 
   Future<void> _showForgotPasswordDialog(BuildContext context) async {
